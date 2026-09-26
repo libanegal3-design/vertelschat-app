@@ -54,7 +54,7 @@ def question_session(locale: str, name: str, question: str, asker: str = "", fir
 TEMPLATES = {
     "vt_vraag_v1": "Hallo {{1}}, hier is je vraag van deze week:\n\n*{{2}}*\n\nVertel het gerust in een spraakbericht, wanneer het jou uitkomt.",
     "vt_vraag_familie_v1": "Hallo {{1}}, {{2}} vroeg zich af:\n\n*{{3}}*\n\nVertel het gerust in een spraakbericht, wanneer het jou uitkomt.",
-    "vt_vraag_kort_v1": "Hallo {{1}}, een nieuwe vraag voor je:\n\n*{{2}}*",
+    "vt_vraag_kort_v1": "Hallo {{1}}, een nieuwe vraag voor je:\n\n*{{2}}*\n\nAntwoorden kan met een spraakbericht.",
     "vt_afsluiting_v1": "Hallo {{1}}, dit was de laatste vraag van dit verteljaar. Dankjewel voor al je verhalen. Ze blijven bewaard voor je familie, ook na vandaag.",
 }
 

@@ -92,9 +92,17 @@ class Setup:
                  "Koppelen mislukt: " + d.get("error", {}).get("message", "?"))
         return ok
 
+    def existing_templates(self) -> set[str]:
+        ok, d = self._call("GET", f"{self.s.whatsapp_waba_id}/message_templates", params={"fields": "name", "limit": 200})
+        return {t.get("name") for t in d.get("data", [])} if ok else set()
+
     def submit_templates(self) -> bool:
         all_ok = True
+        existing = self.existing_templates()
         for name in TEMPLATES:
+            if name in existing:
+                self.out(f"Sjabloon {name} is al ingediend.")
+                continue
             ok, d = self._call("POST", f"{self.s.whatsapp_waba_id}/message_templates", json=template_payload(name))
             msg = d.get("error", {}).get("error_user_msg") or d.get("error", {}).get("message", "")
             if ok:
