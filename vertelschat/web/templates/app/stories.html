@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Verhalen · {{ project.title }}{% endblock %}
+{% block main %}
+{% set first = storyteller.name.split(' ')[0] if storyteller else "de verteller" %}
+<div class="wrap page">
+  <div class="page-head">
+    <div><h1>Verhalen</h1>
+      <p class="lede">Alles wat {{ first }} vertelde, het nieuwste bovenaan. Van elk verhaal bewaren we de originele opname, de letterlijke tekst en de bewerkte versie, apart van elkaar.</p></div>
+  </div>
+  <nav class="filters" aria-label="Filter verhalen">
+    <a class="filter{% if not filter %} is-active{% endif %}" href="/p/{{ project.id }}/verhalen">Alle</a>
+    <a class="filter{% if filter == 'controle' %} is-active{% endif %}" href="/p/{{ project.id }}/verhalen?filter=controle">Nakijken{% if badge_review %} ({{ badge_review }}){% endif %}</a>
+    <a class="filter{% if filter == 'verborgen' %} is-active{% endif %}" href="/p/{{ project.id }}/verhalen?filter=verborgen">Verborgen</a>
+  </nav>
+  {% if rows %}
+  <ul class="story-list" style="margin-top:18px">{% for row in rows %}{% include "app/_story_item.html" %}{% endfor %}</ul>
+  {% else %}
+  <div class="empty">
+    {% if filter == "controle" %}<h2>Niets na te kijken</h2><p class="muted">Alle verhalen zijn gecontroleerd.</p>
+    {% elif filter == "verborgen" %}<h2>Geen verborgen verhalen</h2><p class="muted">Verborgen verhalen blijven bewaard en te downloaden, maar staan niet in de lijst en niet in het boek.</p>
+    {% else %}<h2>Nog geen verhalen</h2><p class="muted">Zodra {{ first }} een spraakbericht stuurt, verschijnt het hier, meestal binnen een paar minuten.</p>{% endif %}
+  </div>
+  {% endif %}
+  {% if can_edit %}
+  <details class="fold" style="margin-top:36px;max-width:720px">
+    <summary>Zelf een opname toevoegen</summary>
+    <div class="fold-body">
+      <p class="small muted">Heb je {{ first }} zelf opgenomen, bijvoorbeeld aan de keukentafel? Voeg het bestand toe; het wordt net zo verwerkt als een spraakbericht. Mp3, m4a, ogg of wav, tot 200 MB.</p>
+      <form method="post" action="/p/{{ project.id }}/opnames/upload" enctype="multipart/form-data" class="btn-row">
+        {{ ui.csrf() }}
+        <input type="file" name="file" accept="audio/*" required>
+        <button class="btn btn-quiet btn-small" type="submit">Toevoegen</button>
+      </form>
+    </div>
+  </details>
+  {% endif %}
+</div>
+{% endblock %}

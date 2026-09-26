@@ -1,0 +1,141 @@
+# Render Blueprint for Vertelschat: web app + background worker + PostgreSQL, all in Frankfurt (EU).
+# Use: Render Dashboard > New > Blueprint > pick the GitHub repository that contains this file at its root.
+# Step-by-step (Dutch): documentation/APP-ONLINE-ZETTEN.md in the delivery.
+
+databases:
+  - name: vertelschat-db
+    region: frankfurt
+    plan: basic-256mb
+    databaseName: vertelschat
+    user: vertelschat
+    ipAllowList: []            # no access from the internet; only Render services can connect
+
+envVarGroups:
+  - name: vertelschat-shared   # one place for settings that web and worker must share
+    envVars:
+      - key: VT_ENV
+        value: production
+      - key: VT_BASE_URL
+        value: https://app.vertelschat.nl
+      - key: VT_QR_BASE_URL
+        value: https://v.vertelschat.nl
+      - key: VT_STOREFRONT_URL
+        value: https://vertelschat.nl
+      - key: VT_SUPPORT_EMAIL
+        value: hallo@vertelschat.nl
+      - key: MAIL_FROM
+        value: "Vertelschat <hallo@vertelschat.nl>"
+      - key: VT_DEV_TOOLS
+        value: "false"
+      - key: VT_STORAGE_BACKEND
+        value: s3
+      - key: S3_ENDPOINT_URL
+        value: https://s3.nl-ams.scw.cloud
+      - key: S3_REGION
+        value: nl-ams
+      - key: S3_BUCKET
+        value: vertelschat-media        # change if this bucket name is taken at Scaleway
+      - key: MAIL_BACKEND
+        value: smtp
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: TRANSCRIPTION_BACKEND
+        value: mistral
+      - key: STORY_BACKEND
+        value: anthropic
+      - key: WHATSAPP_BACKEND
+        value: mock                     # set to "cloud" once the WhatsApp number is connected
+      - key: WHATSAPP_DISPLAY_NUMBER
+        value: "+31 6 00000000"          # replace with the real WhatsApp number later
+      # Secrets generated once by Render and shared by web and worker. Keep a copy in a password manager:
+      # without VT_PHONE_ENCRYPTION_KEY the stored phone numbers cannot be read.
+      - key: VT_SECRET_KEY
+        generateValue: true
+      - key: VT_PHONE_ENCRYPTION_KEY
+        generateValue: true
+      - key: VT_PHONE_HASH_KEY
+        generateValue: true
+      - key: WHATSAPP_VERIFY_TOKEN
+        generateValue: true
+
+services:
+  - type: web
+    name: vertelschat-web
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    domains:
+      - app.vertelschat.nl
+      - v.vertelschat.nl
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vertelschat-db
+          property: connectionString
+      - fromGroup: vertelschat-shared
+      # Render asks for these once when you create the Blueprint. Type "later" for values you don't have yet.
+      - key: SHOPIFY_WEBHOOK_SECRET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_WABA_ID
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+
+  - type: worker
+    name: vertelschat-worker
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: python -m vertelschat.worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vertelschat-db
+          property: connectionString
+      - fromGroup: vertelschat-shared
+      # The worker reads the same secrets from the web service, so you only enter them once.
+      - key: SHOPIFY_WEBHOOK_SECRET
+        fromService: { type: web, name: vertelschat-web, envVarKey: SHOPIFY_WEBHOOK_SECRET }
+      - key: S3_ACCESS_KEY_ID
+        fromService: { type: web, name: vertelschat-web, envVarKey: S3_ACCESS_KEY_ID }
+      - key: S3_SECRET_ACCESS_KEY
+        fromService: { type: web, name: vertelschat-web, envVarKey: S3_SECRET_ACCESS_KEY }
+      - key: SMTP_USER
+        fromService: { type: web, name: vertelschat-web, envVarKey: SMTP_USER }
+      - key: SMTP_PASSWORD
+        fromService: { type: web, name: vertelschat-web, envVarKey: SMTP_PASSWORD }
+      - key: MISTRAL_API_KEY
+        fromService: { type: web, name: vertelschat-web, envVarKey: MISTRAL_API_KEY }
+      - key: ANTHROPIC_API_KEY
+        fromService: { type: web, name: vertelschat-web, envVarKey: ANTHROPIC_API_KEY }
+      - key: WHATSAPP_ACCESS_TOKEN
+        fromService: { type: web, name: vertelschat-web, envVarKey: WHATSAPP_ACCESS_TOKEN }
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        fromService: { type: web, name: vertelschat-web, envVarKey: WHATSAPP_PHONE_NUMBER_ID }
+      - key: WHATSAPP_WABA_ID
+        fromService: { type: web, name: vertelschat-web, envVarKey: WHATSAPP_WABA_ID }
+      - key: WHATSAPP_APP_SECRET
+        fromService: { type: web, name: vertelschat-web, envVarKey: WHATSAPP_APP_SECRET }

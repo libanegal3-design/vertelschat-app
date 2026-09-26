@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block main %}
+{% set st = storyteller %}
+{% set first = st.name.split(' ')[0] if st else "de verteller" %}
+<section class="hero-band on-night">
+  <div class="wrap">
+  {% if project.deletion_requested_at %}
+    <p class="kicker-night">Verwijdering aangevraagd</p>
+    <h1>Dit project wordt binnenkort gewist</h1>
+    <p class="lede">Op {{ (project.deletion_requested_at)|nl_date }} is gevraagd om alles te verwijderen. Dat gebeurt 14 dagen later. <a href="/p/{{ project.id }}/instellingen">Annuleren</a> kan tot die tijd.</p>
+  {% elif project.status == "completed" %}
+    <p class="kicker-night">Het verteljaar is afgerond</p>
+    <h1>Alles blijft van jullie</h1>
+    <p class="lede">Er komen geen nieuwe vragen meer, maar alles wat {{ first }} vertelde blijft hier om te luisteren, te lezen en te downloaden. De QR-codes in het boek blijven gewoon werken.</p>
+    <div class="btn-row"><a class="btn btn-lamp" href="/p/{{ project.id }}/downloads">Alles downloaden</a><a class="btn btn-quiet" href="/p/{{ project.id }}/verhalen">Verhalen teruglezen</a></div>
+  {% elif not st or not st.identity_id %}
+    <p class="kicker-night">Nog &eacute;&eacute;n stap</p>
+    <h1>Verbind {{ first }} met WhatsApp</h1>
+    <p class="lede">Stuur {{ first }} de uitnodiging. E&eacute;n tik op de link en &eacute;&eacute;n keer op verzenden, meer is het niet.</p>
+    {% if is_editor %}<div class="btn-row"><a class="btn btn-lamp" href="/p/{{ project.id }}/verbinden">Uitnodiging versturen</a></div>{% endif %}
+  {% elif st.consent_status != "given" %}
+    <p class="kicker-night">Bijna</p>
+    <h1>Wachten op {{ first }}</h1>
+    <p class="lede">{{ first }} heeft zich aangemeld. Zodra {{ first }} op &ldquo;Ja, ik doe mee&rdquo; drukt, komt de eerste vraag.</p>
+  {% elif latest %}
+    {% set top = latest[0] %}
+    <p class="kicker-night">Het nieuwste verhaal van {{ first }}</p>
+    <h1><a href="/p/{{ project.id }}/verhalen/{{ top.story.id }}">{{ top.story.title or "Een nieuw verhaal" }}</a></h1>
+    {% if top.play_id %}<div class="hero-player">{{ ui.player(top.play_id, top.duration, bars=64) }}</div>
+    {% elif top.story.body %}<p class="lede">{{ top.story.body|excerpt(220) }}</p>{% endif %}
+  {% else %}
+    <p class="kicker-night">{{ first }} doet mee</p>
+    <h1>De eerste vraag is onderweg</h1>
+    <p class="lede">Zodra {{ first }} een spraakbericht stuurt, verschijnt het verhaal hier. Soms duurt dat een paar dagen, en dat is prima.</p>
+  {% endif %}
+    <div class="statline">
+      <div class="stat"><strong>{{ stats.stories }}</strong><span>{{ "verhaal" if stats.stories == 1 else "verhalen" }}</span></div>
+      <div class="stat"><strong>{{ stats.minutes }}</strong><span>{{ "minuut" if stats.minutes == 1 else "minuten" }} in eigen stem</span></div>
+      <div class="stat"><strong>{{ stats.photos }}</strong><span>{{ "foto" if stats.photos == 1 else "foto's" }}</span></div>
+      <div class="stat"><strong>{{ stats.members }}</strong><span>{{ "familielid" if stats.members == 1 else "familieleden" }}</span></div>
+    </div>
+    {% if st and st.identity_id and st.consent_status == "given" and project.status != "completed" %}
+    <p class="status-line{% if st.opted_out_at %} is-waiting{% endif %}"><span class="dot" aria-hidden="true"></span>{% if st.opted_out_at %}{{ first }} heeft de vragen stopgezet. Alles blijft bewaard.{% else %}Verbonden via WhatsApp, {{ phone }}.{% if schedule.paused_until and schedule.paused_until > now %} Vragen gepauzeerd tot {{ schedule.paused_until|nl_date(False) }}.{% elif schedule.next_send_at %} Volgende vraag {{ schedule.next_send_at|nl_datetime }}.{% endif %}{% endif %}</p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="wrap page">
+  <div class="cols">
+    <div>
+      {% if attention.review or attention.held or attention.failed or attention.suggested %}
+      <div class="flag" style="margin-bottom:30px">{{ ui.icon("flag") }}<div>
+        <p><strong>Even je aandacht</strong></p>
+        <ul class="todo">
+          {% if attention.review %}<li><a href="/p/{{ project.id }}/verhalen?filter=controle">{{ plural(attention.review, "verhaal", "verhalen") }} om even na te kijken</a></li>{% endif %}
+          {% if attention.held %}<li><a href="/p/{{ project.id }}/verhalen?filter=controle">{{ plural(attention.held, "opname wacht", "opnames wachten") }} op een bevestiging</a></li>{% endif %}
+          {% if attention.failed %}<li><a href="/p/{{ project.id }}/vragen#verstuurd">{{ plural(attention.failed, "vraag is", "vragen zijn") }} misschien niet aangekomen</a></li>{% endif %}
+          {% if attention.suggested %}<li><a href="/p/{{ project.id }}/vragen#voorstellen">{{ plural(attention.suggested, "vraagvoorstel", "vraagvoorstellen") }} van familie of uit eerdere verhalen</a></li>{% endif %}
+        </ul>
+      </div></div>
+      {% endif %}
+      <div class="section-title"><h2>Laatste verhalen</h2>{% if latest %}<a href="/p/{{ project.id }}/verhalen">Alle verhalen</a>{% endif %}</div>
+      {% if latest %}
+      <ul class="story-list">{% for row in latest %}{% include "app/_story_item.html" %}{% endfor %}</ul>
+      {% else %}
+      <p class="muted">Hier verschijnen de verhalen zodra {{ first }} de eerste vraag beantwoordt. Je krijgt een mail als er iets nieuws is.</p>
+      {% endif %}
+      {% if notes %}
+      <div style="margin-top:44px">
+        <div class="section-title"><h2>Wat er gebeurde</h2>
+          <form method="post" action="/p/{{ project.id }}/meldingen/gelezen" class="inline-form">{{ ui.csrf() }}<button class="linklike small" type="submit">Markeer als gelezen</button></form></div>
+        <ul class="timeline">
+          {% for n in notes %}
+          <li><time datetime="{{ n.created_at.isoformat() }}">{{ n.created_at|relative }}</time>
+            <div>{% if n.url %}<a href="{{ n.url }}"><strong>{{ n.title }}</strong></a>{% else %}<strong>{{ n.title }}</strong>{% endif %}
+              {% if n.body %}<br><span class="muted small">{{ n.body|excerpt(170) }}</span>{% endif %}</div></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    <aside>
+      {% if offer %}
+      <div class="aside-block offer" data-offer="{{ offer.key }}">
+        <h3>{{ offer.title }}</h3>
+        <p class="small">{{ offer.body }}</p>
+        <div class="btn-row"><a class="btn btn-small" href="{{ offer.url }}">{{ offer.cta }}</a>
+          <form method="post" action="/p/{{ project.id }}/aanbod/{{ offer.key }}/verbergen" class="inline-form">{{ ui.csrf() }}<button class="linkbtn small" type="submit">Niet nu</button></form></div>
+        {% for o in offer.extra or [] %}<p class="small muted" style="margin-top:10px">{{ o.title }}: {{ o.price }}. <a href="{{ o.url or offer.url ~ '&tarief=2026' }}">Bekijk</a></p>{% endfor %}
+      </div>
+      {% endif %}
+      {% if project.status == "active" and st and st.consent_status == "given" and not st.opted_out_at %}
+      <div class="aside-block aside-night on-night">
+        <h3>Volgende vraag</h3>
+        {% if queued %}<p class="next-q">{{ queued.text }}</p>
+        {% else %}<p class="next-q">Een vraag uit de bibliotheek, passend bij wat {{ first }} al vertelde.</p>{% endif %}
+        <p class="when">{% if schedule.paused_until and schedule.paused_until > now %}Gepauzeerd tot {{ schedule.paused_until|nl_date(False) }}{% elif schedule.next_send_at %}{{ schedule.next_send_at|nl_datetime }}{% endif %}</p>
+        <a class="btn btn-quiet btn-small" href="/p/{{ project.id }}/vragen">Wachtrij bekijken</a>
+      </div>
+      {% endif %}
+      <div class="aside-block">
+        <h3>Het boek</h3>
+        <p class="small">{{ plural(stats.ready + stats.review, "verhaal", "verhalen") }} klaar, samen ongeveer {{ stats.pages }} pagina's.</p>
+        {% set pct = [((stats.pages / 240) * 100)|round|int, 100]|min %}
+        <div class="meter" role="img" aria-label="Ongeveer {{ stats.pages }} van de 240 pagina's"><i style="width: {{ pct }}%"></i></div>
+        <p class="small muted">Tot 240 pagina's. Bij elk verhaal een QR-code naar de opname.</p>
+        <a href="/p/{{ project.id }}/boek">Boek samenstellen</a>
+      </div>
+      <div class="aside-block">
+        <h3>Alles blijft van jullie</h3>
+        <p class="small">Download op elk moment de opnames, verhalen, foto's en het boek. Ook na het verteljaar, zonder abonnement.</p>
+        <a href="/p/{{ project.id }}/downloads">Naar downloads</a>
+      </div>
+      {% if project.active_until and project.status == "active" %}<p class="small muted" style="margin-top:16px">Er komen vragen tot {{ project.active_until|nl_date }}.</p>{% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

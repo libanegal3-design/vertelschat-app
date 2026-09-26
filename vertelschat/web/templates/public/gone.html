@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Vertelschat{% endblock %}
+{% block body_class %}listen-body{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="listen">
+  <a class="wordmark" href="#">vertelschat</a>
+  <div class="listen-main">
+    {% if reason == "busy" %}
+    <h1>Even rustig aan</h1><p>Er werd heel vaak achter elkaar gescand. Probeer het over een paar minuten opnieuw.</p>
+    {% elif reason == "family" %}
+    <h1>Deze link werkt niet meer</h1><p>Misschien is er inmiddels een nieuwe versie van het boek, of is de link ingetrokken. Vraag degene die het boek maakte om een nieuwe link.</p>
+    {% elif reason == "invite" %}
+    <h1>Deze uitnodiging werkt niet meer</h1><p>Misschien is er al een nieuwe uitnodiging gestuurd. Vraag degene die je uitnodigde om de nieuwste link.</p>
+    {% elif reason == "revoked" %}
+    <h1>Deze opname is niet meer online</h1><p>De familie heeft deze QR-code uitgezet. In het eigen archief van de familie staat de opname nog wel; zoek op de audiocode naast de QR-code.</p>
+    {% else %}
+    <h1>Deze code kennen we niet</h1><p>Controleer of de hele code is gescand. Staat er een audiocode naast (bijvoorbeeld A07)? Dan vind je de opname ook in het archief van de familie onder die code.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

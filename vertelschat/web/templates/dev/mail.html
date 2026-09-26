@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Uitgaande mail · Vertelschat{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Uitgaande mail</h1><p class="lede">In ontwikkeling wordt mail niet verstuurd maar hier bewaard.</p></div></div>
+  <div class="mail-layout">
+    <ul class="mail-list">{% for m in mails %}<li><a class="{% if current and m.id == current.id %}is-active{% endif %}" href="/dev/mail?id={{ m.id }}"><strong>{{ m.subject }}</strong><br><span class="faint">{{ m.to }} &middot; {{ m.created_at|relative }}</span></a></li>{% else %}<li class="muted">Nog geen mail.</li>{% endfor %}</ul>
+    <div>{% if current %}<p class="small muted">Aan {{ current.to }}: <strong>{{ current.subject }}</strong></p><iframe class="mail-frame" src="/dev/mail/{{ current.id }}/html" title="Mail"></iframe>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}

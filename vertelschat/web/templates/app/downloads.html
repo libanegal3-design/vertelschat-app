@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Downloads · {{ project.title }}{% endblock %}
+{% block main %}
+{% set latest = exports[0] if exports else None %}
+<div class="wrap page">
+  <div class="archive on-night">
+    <div style="position:relative;z-index:1">
+      <h2>Download alles</h2>
+      <p>E&eacute;n zip-bestand met alles wat er verteld is. Het werkt zonder Vertelschat: open <strong>index.html</strong> en je kunt alles lezen en beluisteren, ook zonder internet.</p>
+      <p>Dit kan altijd, ook na het verteljaar. Zonder abonnement, zonder heractivering, zonder kosten.</p>
+      <div class="btn-row">
+        {% if latest and latest.status == "ready" and export_assets.get(latest.id) and export_assets[latest.id].status == "stored" %}
+          <a class="btn btn-lamp" href="/m/{{ latest.media_id }}?download=1">{{ ui.icon("download") }}Download archief ({{ "%.1f"|format((latest.size_bytes or 0) / 1048576) }} MB)</a>
+        {% endif %}
+        {% if latest and latest.status in ("queued", "building") %}
+          <span class="pill pill-quiet"><span class="dot"></span>&nbsp;Het archief wordt gemaakt. Je krijgt een mail.</span>
+        {% else %}
+          <form method="post" action="/p/{{ project.id }}/downloads/archief" class="inline-form">{{ ui.csrf() }}<button class="btn {% if latest and latest.status == 'ready' %}btn-quiet{% else %}btn-lamp{% endif %}" type="submit">{% if latest and latest.status == 'ready' %}Nieuw archief maken{% else %}Archief maken{% endif %}</button></form>
+        {% endif %}
+      </div>
+      {% if latest and latest.completed_at %}<p class="small" style="margin-top:14px">Laatst gemaakt {{ latest.completed_at|nl_datetime }}, {{ latest.file_count }} bestanden.</p>{% endif %}
+    </div>
+    <ul>
+      <li><code>audio/</code> de originele spraakberichten en een mp3-kopie</li>
+      <li><code>transcripties/</code> de letterlijke tekst van elke opname</li>
+      <li><code>verhalen/</code> de bewerkte verhalen, zoals in het boek</li>
+      <li><code>fotos/</code> alle foto's in het oorspronkelijke formaat</li>
+      <li><code>boek/</code> het boek als pdf</li>
+      <li><code>projectgegevens/</code> alles als JSON en CSV, met controlegetallen</li>
+    </ul>
+  </div>
+
+  <section class="section" style="margin-top:44px">
+    <div class="section-title"><h2>Per verhaal</h2><span class="muted small">Bestandsnamen beginnen met de audiocode uit het boek</span></div>
+    {% if rows %}
+    <div class="table-wrap"><table class="dl-table">
+      <thead><tr><th>Code</th><th>Verhaal</th><th>Downloads</th></tr></thead>
+      <tbody>
+      {% for row in rows %}
+      <tr><td>{% if row.qr %}<span class="qr-code">{{ row.qr.audio_code }}</span>{% endif %}</td>
+        <td class="t"><a href="/p/{{ project.id }}/verhalen/{{ row.story.id }}">{{ row.story.title or "Nog zonder titel" }}</a>{% if row.story.hidden_at %} <span class="small muted">(verborgen)</span>{% endif %}</td>
+        <td><div class="dl-links">{% for r in row.recs %}
+          {% if r.original_media_id and r.status != "downloading" %}<a href="/m/{{ r.original_media_id }}?download=1">Origineel{% if row.recs|length > 1 %} {{ loop.index }}{% endif %}</a>{% endif %}
+          {% if r.playback_media_id %}<a href="/m/{{ r.playback_media_id }}?download=1">Mp3{% if row.recs|length > 1 %} {{ loop.index }}{% endif %}</a>{% endif %}
+        {% else %}<span class="faint">Alleen tekst</span>{% endfor %}</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<p class="muted">Nog niets om te downloaden.</p>{% endif %}
+  </section>
+
+  <section class="section">
+    <div class="cols-even">
+      <div>
+        <h2>Het boek</h2>
+        {% if version %}
+        <p>Versie {{ version.version }}{% if version.approved_at %}, goedgekeurd{% endif %}, {{ version.page_count }} pagina's.</p>
+        <div class="dl-links"><a href="/m/{{ version.screen_media_id }}?download=1">Digitale editie (pdf)</a><a href="/m/{{ version.interior_media_id }}?download=1">Drukbestand binnenwerk</a><a href="/m/{{ version.cover_media_id }}?download=1">Drukbestand omslag</a></div>
+        {% else %}<p class="muted">Nog geen boekvoorbeeld. <a href="/p/{{ project.id }}/boek">Naar het boek</a>.</p>{% endif %}
+      </div>
+      <div>
+        <h2>Onze belofte</h2>
+        <p class="small">Opnames, teksten, foto's, het boek en de export blijven gratis te downloaden, ook als het verteljaar voorbij is. De QR-codes in het boek blijven werken. En mocht Vertelschat ooit stoppen, dan krijgen alle families ruim van tevoren bericht om alles op te halen.</p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

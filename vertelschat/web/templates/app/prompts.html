@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Vragen · {{ project.title }}{% endblock %}
+{% block main %}
+{% set first = storyteller.name.split(' ')[0] if storyteller else "de verteller" %}
+{% set rhythm = cadences.get(schedule.cadence_days, "Elke week") ~ " op " ~ WEEKDAYS[schedule.weekday] ~ " om " ~ "%02d:%02d"|format(schedule.send_hour, schedule.send_minute) %}
+<div class="wrap page">
+  <div class="page-head">
+    <div><h1>Vragen</h1>
+      <p class="lede">{{ rhythm }}.{% if schedule.paused_until and schedule.paused_until > now %} Gepauzeerd tot {{ schedule.paused_until|nl_date(False) }}.{% endif %}{% if schedule.wait_for_answer %} Er komt pas een nieuwe vraag als de vorige beantwoord is.{% endif %}</p></div>
+    {% if can_edit and project.status == "active" and storyteller and storyteller.can_receive_prompts %}
+    <form method="post" action="/p/{{ project.id }}/vragen/nu" class="inline-form">{{ ui.csrf() }}<button class="btn btn-lamp" type="submit">Nu een vraag sturen</button></form>
+    {% endif %}
+  </div>
+  <div class="cols">
+    <div>
+      <section class="section" id="wachtrij">
+        <div class="section-title"><h2>Wachtrij</h2><span class="muted small">{{ plural(queued|length, "vraag", "vragen") }}</span></div>
+        {% if queued %}
+        <ol class="queue">
+          {% for p in queued %}
+          <li class="{% if loop.first %}is-next{% endif %}">
+            <div><span class="qtext">{{ p.text }}</span>
+              <span class="qmeta">{% if p.status == "scheduled" %}Wordt nu verstuurd{% elif loop.first %}Volgende vraag{% if schedule.next_send_at and project.status == "active" %}, {{ schedule.next_send_at|nl_datetime }}{% endif %}{% endif %}{% if p.source == "family" and askers.get(p.suggested_by_id) %}{% if loop.first or p.status == "scheduled" %}, {% endif %}van {{ askers[p.suggested_by_id].first_name }}{% endif %}{% if p.source == "followup" %}{% if loop.first %}, {% endif %}vervolgvraag{% endif %}</span></div>
+            {% if can_edit and p.status == "queued" %}
+            <div class="tools">
+              <form method="post" action="/p/{{ project.id }}/vragen/{{ p.id }}/omhoog" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Eerder stellen"{% if loop.first %} disabled{% endif %}>{{ ui.icon("up") }}</button></form>
+              <form method="post" action="/p/{{ project.id }}/vragen/{{ p.id }}/omlaag" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Later stellen"{% if loop.last %} disabled{% endif %}>{{ ui.icon("down") }}</button></form>
+              <form method="post" action="/p/{{ project.id }}/vragen/{{ p.id }}/verwijder" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Uit de wachtrij halen">{{ ui.icon("x") }}</button></form>
+            </div>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <p class="muted">De wachtrij is leeg. Dan kiezen we zelf een passende vraag uit de bibliotheek, afgewisseld over de onderwerpen.</p>
+        {% endif %}
+      </section>
+
+      {% if is_contributor and editable %}
+      <section class="section" id="eigen-vraag">
+        <h2>{% if is_editor %}Eigen vraag toevoegen{% else %}Een vraag voorstellen{% endif %}</h2>
+        <p class="small muted">Korte, open vragen werken het best. Vraag naar een moment, een plek of een persoon: &ldquo;Wat weet je nog van de dag dat ik geboren werd?&rdquo;{% if not is_editor %} Je voorstel gaat eerst langs een redacteur.{% endif %}</p>
+        <form method="post" action="/p/{{ project.id }}/vragen/nieuw">{{ ui.csrf() }}
+          <div class="field"><label for="text" class="visually-hidden">Vraag</label><textarea id="text" name="text" rows="2" maxlength="300" required placeholder="Wat weet je nog van de dag dat ik geboren werd?"></textarea></div>
+          <button class="btn btn-quiet btn-small" type="submit">{% if is_editor %}In de wachtrij zetten{% else %}Voorstellen{% endif %}</button>
+        </form>
+      </section>
+      {% endif %}
+
+      {% if suggested %}
+      <section class="section" id="voorstellen">
+        <div class="section-title"><h2>Voorstellen</h2></div>
+        <p class="small muted">Van familie, of vervolgvragen die opkwamen uit wat {{ first }} vertelde. Ze gaan pas mee als je ze goedkeurt.</p>
+        <ul class="lib-list">
+          {% for p in suggested %}
+          <li><div><span class="qtext">{{ p.text }}</span><br><span class="small faint">{% if p.source == "followup" %}Vervolgvraag{% elif askers.get(p.suggested_by_id) %}Van {{ askers[p.suggested_by_id].first_name }}{% endif %}, {{ p.created_at|relative }}</span></div>
+            {% if can_edit %}<div class="btn-row" style="gap:8px">
+              <form method="post" action="/p/{{ project.id }}/vragen/{{ p.id }}/goedkeuren" class="inline-form">{{ ui.csrf() }}<button class="btn btn-small" type="submit">Toevoegen</button></form>
+              <form method="post" action="/p/{{ project.id }}/vragen/{{ p.id }}/afwijzen" class="inline-form">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Niet</button></form>
+            </div>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <section class="section" id="bibliotheek">
+        <div class="section-title"><h2>Bibliotheek</h2><span class="muted small">Door mensen geschreven</span></div>
+        <nav class="cat-tabs" aria-label="Onderwerpen">
+          {% for key, label, entries in library %}<a class="filter{% if current and current[0] == key %} is-active{% endif %}" href="/p/{{ project.id }}/vragen?cat={{ key }}#bibliotheek">{{ label }}</a>{% endfor %}
+        </nav>
+        {% if current %}
+        <ul class="lib-list">
+          {% for e in current[2] %}
+          <li><span class="qtext">{{ e.question }}</span>
+            {% if e.used %}<span class="used">Al gebruikt</span>
+            {% elif can_edit %}<form method="post" action="/p/{{ project.id }}/vragen/bibliotheek" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="key" value="{{ e.key }}"><input type="hidden" name="cat" value="{{ current[0] }}"><button class="btn btn-quiet btn-small" type="submit">Toevoegen</button></form>{% endif %}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </section>
+
+      <section class="section" id="verstuurd">
+        <div class="section-title"><h2>Verstuurd</h2></div>
+        {% if history %}
+        <div class="table-wrap"><table class="history">
+          <thead><tr><th>Vraag</th><th>Verstuurd</th><th>Status</th><th></th></tr></thead>
+          <tbody>{% for p in history %}
+            <tr><td class="qtext">{{ p.text }}{% if p.failure_reason and p.status in ("failed", "send_unknown") %}<br><span class="small muted" style="font-family:var(--sans)">{{ p.failure_reason }}</span>{% endif %}</td>
+              <td>{{ p.sent_at|nl_date(False) if p.sent_at else "" }}</td><td>{{ ui.prompt_status(p) }}</td>
+              <td>{% if can_edit and p.status in ("failed", "send_unknown") %}<form method="post" action="/p/{{ project.id }}/vragen/{{ p.id }}/opnieuw" class="inline-form">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Opnieuw versturen</button></form>{% endif %}</td></tr>
+          {% endfor %}</tbody>
+        </table></div>
+        {% else %}<p class="muted">Nog geen vragen verstuurd.</p>{% endif %}
+      </section>
+    </div>
+
+    <aside>
+      {% if can_edit %}
+      <div class="aside-block">
+        <h3>Ritme</h3>
+        <form method="post" action="/p/{{ project.id }}/vragen/ritme">{{ ui.csrf() }}
+          <div class="field"><label for="cadence">Hoe vaak</label><select id="cadence" name="cadence">{% for days, label in cadences.items() %}<option value="{{ days }}"{% if schedule.cadence_days == days %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+          <div class="field-row">
+            <div class="field"><label for="weekday">Dag</label><select id="weekday" name="weekday">{% for d in WEEKDAYS %}<option value="{{ loop.index0 }}"{% if schedule.weekday == loop.index0 %} selected{% endif %}>{{ d }}</option>{% endfor %}</select></div>
+            <div class="field"><label for="hour">Tijd</label><select id="hour" name="hour">{% for h in range(8, 21) %}<option value="{{ h }}"{% if schedule.send_hour == h %} selected{% endif %}>{{ "%02d"|format(h) }}:00</option>{% endfor %}</select></div>
+          </div>
+          <label class="check" style="padding-top:0"><input type="checkbox" name="wait" value="1"{% if schedule.wait_for_answer %} checked{% endif %}><span class="small">Wacht op een antwoord voor de volgende vraag</span></label>
+          <button class="btn btn-quiet btn-small" type="submit">Opslaan</button>
+        </form>
+      </div>
+      <div class="aside-block">
+        <h3>Even niet?</h3>
+        {% if schedule.paused_until and schedule.paused_until > now %}
+          <p class="small">Gepauzeerd tot {{ schedule.paused_until|nl_date }}.</p>
+          <form method="post" action="/p/{{ project.id }}/vragen/hervat">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Nu hervatten</button></form>
+        {% else %}
+          <form method="post" action="/p/{{ project.id }}/vragen/pauze" class="btn-row">{{ ui.csrf() }}
+            <select name="weeks" aria-label="Hoe lang" style="width:auto;min-height:42px"><option value="2">2 weken</option><option value="4">4 weken</option><option value="8">8 weken</option></select>
+            <button class="btn btn-quiet btn-small" type="submit">Pauzeren</button></form>
+        {% endif %}
+      </div>
+      {% endif %}
+      <div class="aside-block">
+        <h3>Wat {{ first }} zelf kan sturen</h3>
+        <p class="small"><strong>VRAAG</strong> voor een extra vraag, <strong>PAUZE</strong> voor vier weken rust, <strong>STOP</strong> om te stoppen en <strong>HULP</strong> voor uitleg. Alles wat al verteld is, blijft altijd bewaard.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

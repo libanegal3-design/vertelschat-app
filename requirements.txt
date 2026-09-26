@@ -1,0 +1,16 @@
+# Vertelschat application (Python 3.12). Pinned to the versions the test suite ran against.
+fastapi==0.141.1
+starlette==1.7.0
+uvicorn[standard]==0.54.0
+SQLAlchemy==2.1.1
+psycopg[binary]>=3.2,<4          # PostgreSQL driver for production (DATABASE_URL=postgresql+psycopg://...)
+Jinja2==3.1.6
+python-multipart==0.0.32
+itsdangerous==2.2.0
+cryptography==46.0.6
+httpx==0.28.1
+segno==1.6.6
+reportlab==4.4.10
+pypdfium2==5.6.0
+pillow==12.1.1
+boto3>=1.35,<2                   # only needed with VT_STORAGE_BACKEND=s3

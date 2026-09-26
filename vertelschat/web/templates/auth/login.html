@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Inloggen · Vertelschat{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="auth">
+  {% include "auth/_side.html" %}
+  <section class="auth-main"><div class="auth-box">
+    <h1>Inloggen</h1>
+    <p class="muted">Vul je e-mailadres in. Je krijgt een link waarmee je meteen binnen bent. Een wachtwoord heb je niet nodig.</p>
+    {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="/inloggen" novalidate>
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="email">E-mailadres</label>
+        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required value="{{ email or '' }}">
+      </div>
+      <button class="btn btn-lamp" type="submit">Stuur mij een inloglink</button>
+    </form>
+    <p class="auth-foot">Nog geen verteljaar? <a href="{{ settings.storefront_url }}">Zo werkt Vertelschat</a>.<br>Vragen? Mail <a href="mailto:{{ settings.support_email }}">{{ settings.support_email }}</a>.</p>
+  </div></section>
+</div>
+{% endblock %}

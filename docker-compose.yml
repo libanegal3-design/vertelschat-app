@@ -1,0 +1,38 @@
+# Local production-like stack: web + worker + PostgreSQL + MinIO (S3). Real credentials go in .env.
+services:
+  db:
+    image: postgres:17
+    environment: { POSTGRES_DB: vertelschat, POSTGRES_USER: vertelschat, POSTGRES_PASSWORD: vertelschat }
+    volumes: [ "pgdata:/var/lib/postgresql/data" ]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "vertelschat"], interval: 5s, retries: 10 }
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment: { MINIO_ROOT_USER: vertelschat, MINIO_ROOT_PASSWORD: vertelschat-dev-secret }
+    ports: [ "9000:9000", "9001:9001" ]
+    volumes: [ "minio:/data" ]
+  web:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://vertelschat:vertelschat@db:5432/vertelschat
+      VT_STORAGE_BACKEND: s3
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_BUCKET: vertelschat
+      S3_ACCESS_KEY_ID: vertelschat
+      S3_SECRET_ACCESS_KEY: vertelschat-dev-secret
+    ports: [ "8000:8000" ]
+    depends_on: { db: { condition: service_healthy }, minio: { condition: service_started } }
+  worker:
+    build: .
+    command: ["python", "-m", "vertelschat.worker"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://vertelschat:vertelschat@db:5432/vertelschat
+      VT_STORAGE_BACKEND: s3
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_BUCKET: vertelschat
+      S3_ACCESS_KEY_ID: vertelschat
+      S3_SECRET_ACCESS_KEY: vertelschat-dev-secret
+    depends_on: { db: { condition: service_healthy } }
+volumes: { pgdata: {}, minio: {} }

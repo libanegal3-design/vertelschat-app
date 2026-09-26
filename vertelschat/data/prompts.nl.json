@@ -1,0 +1,1089 @@
+{
+ "version": 1,
+ "language": "nl",
+ "note": "Originele vragen, geschreven door het Vertelschat-team. Geen AI-gegenereerde vragen.",
+ "categories": {
+  "jeugd": "Jeugd en opgroeien",
+  "thuis": "Thuis",
+  "familie": "Familie",
+  "school": "School",
+  "werk": "Werk",
+  "liefde": "Liefde",
+  "ouderschap": "Ouderschap",
+  "feest": "Feesten en tradities",
+  "eten": "Eten en drinken",
+  "tijdgeest": "Tijdgeest",
+  "reizen": "Reizen en uitstapjes",
+  "vriendschap": "Vriendschap",
+  "vrijetijd": "Vrije tijd",
+  "waarden": "Wat ertoe doet",
+  "kleinkinderen": "Voor de kleinkinderen",
+  "verlies": "Afscheid en gemis"
+ },
+ "prompts": [
+  {
+   "key": "j01",
+   "category": "jeugd",
+   "question": "Wat is je allervroegste herinnering?",
+   "title": "Mijn vroegste herinnering"
+  },
+  {
+   "key": "j02",
+   "category": "jeugd",
+   "question": "Wat was de plek waar je als kind het liefst kwam?",
+   "title": "De plek waar ik het liefst kwam",
+   "starter": true
+  },
+  {
+   "key": "j03",
+   "category": "jeugd",
+   "question": "Met welk speelgoed speelde je het liefst, en wie had het je gegeven?",
+   "title": "Mijn lievelingsspeelgoed"
+  },
+  {
+   "key": "j04",
+   "category": "jeugd",
+   "question": "Wat deed je op een regenachtige woensdagmiddag?",
+   "title": "Regenachtige woensdagmiddagen",
+   "nl_BE": {
+    "question": "Wat deed je op een regenachtige woensdagnamiddag?",
+    "title": "Regenachtige woensdagnamiddagen"
+   }
+  },
+  {
+   "key": "j05",
+   "category": "jeugd",
+   "question": "Welk kattenkwaad heb je ooit uitgehaald?",
+   "title": "Kattenkwaad"
+  },
+  {
+   "key": "j06",
+   "category": "jeugd",
+   "question": "Waar was je als kind bang voor, en wie stelde je gerust?",
+   "title": "Waar ik bang voor was"
+  },
+  {
+   "key": "j07",
+   "category": "jeugd",
+   "question": "Wie waren de kinderen in jouw straat, en wat speelden jullie buiten?",
+   "title": "Buitenspelen in onze straat"
+  },
+  {
+   "key": "j08",
+   "category": "jeugd",
+   "question": "Wat wilde je worden toen je klein was?",
+   "title": "Wat ik wilde worden",
+   "starter": true
+  },
+  {
+   "key": "j09",
+   "category": "jeugd",
+   "question": "Welk verhaal of boek kon je als kind niet vaak genoeg horen?",
+   "title": "Het verhaal dat ik steeds weer wilde horen"
+  },
+  {
+   "key": "j10",
+   "category": "jeugd",
+   "question": "Hoe vierde je vroeger je verjaardag?",
+   "title": "Mijn verjaardagen van vroeger"
+  },
+  {
+   "key": "j11",
+   "category": "jeugd",
+   "question": "Had je als kind een huisdier? Vertel eens over dat dier.",
+   "title": "Ons huisdier"
+  },
+  {
+   "key": "j12",
+   "category": "jeugd",
+   "question": "Hoeveel zakgeld kreeg je, en waar gaf je het aan uit?",
+   "title": "Mijn zakgeld"
+  },
+  {
+   "key": "j13",
+   "category": "jeugd",
+   "question": "Welke geur brengt je meteen terug naar je jeugd?",
+   "title": "De geur van mijn jeugd"
+  },
+  {
+   "key": "j14",
+   "category": "jeugd",
+   "question": "Wat was het mooiste cadeau dat je als kind kreeg?",
+   "title": "Het mooiste cadeau"
+  },
+  {
+   "key": "j15",
+   "category": "jeugd",
+   "question": "Hoe zag een gewone zondag eruit toen jij klein was?",
+   "title": "Zondag bij ons thuis",
+   "starter": true
+  },
+  {
+   "key": "j16",
+   "category": "jeugd",
+   "question": "Wat leerde je van je grootouders?",
+   "title": "Wat ik leerde van mijn grootouders"
+  },
+  {
+   "key": "t01",
+   "category": "thuis",
+   "question": "Hoe zag het huis eruit waar je opgroeide? Neem me eens mee door de kamers.",
+   "title": "Het huis waar ik opgroeide",
+   "starter": true
+  },
+  {
+   "key": "t02",
+   "category": "thuis",
+   "question": "Hoe zag jouw kamer eruit toen je jong was?",
+   "title": "Mijn kamer"
+  },
+  {
+   "key": "t03",
+   "category": "thuis",
+   "question": "Wat stond er altijd op tafel bij jullie thuis?",
+   "title": "Wat er op tafel stond"
+  },
+  {
+   "key": "t04",
+   "category": "thuis",
+   "question": "Welke klusjes moest je thuis doen?",
+   "title": "Mijn klusjes thuis"
+  },
+  {
+   "key": "t05",
+   "category": "thuis",
+   "question": "Hoe ging het eraan toe als er visite kwam?",
+   "title": "Als er visite kwam",
+   "nl_BE": {
+    "question": "Hoe ging het eraan toe als er bezoek kwam?",
+    "title": "Als er bezoek kwam"
+   }
+  },
+  {
+   "key": "t06",
+   "category": "thuis",
+   "question": "Hoe hielden jullie het warm in de winter?",
+   "title": "Winters in ons huis"
+  },
+  {
+   "key": "t07",
+   "category": "thuis",
+   "question": "Welke geluiden hoorde je 's avonds in bed?",
+   "title": "Geluiden in de avond"
+  },
+  {
+   "key": "t08",
+   "category": "thuis",
+   "question": "Hoe zag de buurt eruit waar je opgroeide, en wie woonden er?",
+   "title": "Onze buurt"
+  },
+  {
+   "key": "t09",
+   "category": "thuis",
+   "question": "Welke winkels waren er bij jullie in de buurt, en wat haalde je daar?",
+   "title": "De winkels in de buurt"
+  },
+  {
+   "key": "t10",
+   "category": "thuis",
+   "question": "Hoe was het eerste huis waar je zelf ging wonen?",
+   "title": "Mijn eerste eigen huis"
+  },
+  {
+   "key": "t11",
+   "category": "thuis",
+   "question": "Welke plek voelde voor jou het meest als thuis?",
+   "title": "Waar ik me thuis voelde"
+  },
+  {
+   "key": "t12",
+   "category": "thuis",
+   "question": "Welk voorwerp uit je ouderlijk huis zou je nog graag terugzien?",
+   "title": "Wat ik nog eens terug zou willen zien"
+  },
+  {
+   "key": "f01",
+   "category": "familie",
+   "question": "Wat voor iemand was jouw moeder?",
+   "title": "Mijn moeder"
+  },
+  {
+   "key": "f02",
+   "category": "familie",
+   "question": "Wat voor iemand was jouw vader?",
+   "title": "Mijn vader"
+  },
+  {
+   "key": "f03",
+   "category": "familie",
+   "question": "Wat weet je nog van je grootouders?",
+   "title": "Mijn grootouders"
+  },
+  {
+   "key": "f04",
+   "category": "familie",
+   "question": "Hoe was het om op te groeien met je broers en zussen? Of juist zonder?",
+   "title": "Broers en zussen"
+  },
+  {
+   "key": "f05",
+   "category": "familie",
+   "question": "Welke familieverhalen werden bij jullie steeds opnieuw verteld?",
+   "title": "Onze familieverhalen"
+  },
+  {
+   "key": "f06",
+   "category": "familie",
+   "question": "Waar komt onze familie vandaan, voor zover jij weet?",
+   "title": "Waar onze familie vandaan komt"
+  },
+  {
+   "key": "f07",
+   "category": "familie",
+   "question": "Welke uitdrukking of gewoonte heb je van je ouders overgenomen?",
+   "title": "Wat ik van mijn ouders overnam"
+  },
+  {
+   "key": "f08",
+   "category": "familie",
+   "question": "Wie was de grappigste van de familie, en waarom?",
+   "title": "De grappigste van de familie"
+  },
+  {
+   "key": "f09",
+   "category": "familie",
+   "question": "Welke ooms en tantes waren belangrijk voor je?",
+   "title": "Mijn ooms en tantes",
+   "nl_BE": {
+    "question": "Welke nonkels en tantes waren belangrijk voor je?",
+    "title": "Mijn nonkels en tantes"
+   }
+  },
+  {
+   "key": "f10",
+   "category": "familie",
+   "question": "Hoe ging het bij jullie thuis als er ruzie was?",
+   "title": "Als er ruzie was"
+  },
+  {
+   "key": "f11",
+   "category": "familie",
+   "question": "Wat heb je van je moeder geleerd dat je nooit bent vergeten?",
+   "title": "Wat mijn moeder me leerde"
+  },
+  {
+   "key": "f12",
+   "category": "familie",
+   "question": "Wat heb je van je vader geleerd dat je nooit bent vergeten?",
+   "title": "Wat mijn vader me leerde"
+  },
+  {
+   "key": "f13",
+   "category": "familie",
+   "question": "Is er een familielid over wie je graag meer had willen weten?",
+   "title": "Over wie ik meer had willen weten"
+  },
+  {
+   "key": "f14",
+   "category": "familie",
+   "question": "Welk erfstuk of voorwerp in de familie heeft een bijzonder verhaal?",
+   "title": "Een voorwerp met een verhaal"
+  },
+  {
+   "key": "s01",
+   "category": "school",
+   "question": "Wat weet je nog van je eerste schooldag?",
+   "title": "Mijn eerste schooldag"
+  },
+  {
+   "key": "s02",
+   "category": "school",
+   "question": "Hoe zag je lagere school eruit, en hoe kwam je er elke dag?",
+   "title": "Mijn lagere school"
+  },
+  {
+   "key": "s03",
+   "category": "school",
+   "question": "Welke juf of meester is je altijd bijgebleven?",
+   "title": "De juf of meester die ik nooit vergat"
+  },
+  {
+   "key": "s04",
+   "category": "school",
+   "question": "In welk vak was je goed, en welk vak vond je vreselijk?",
+   "title": "Mijn beste en slechtste vak"
+  },
+  {
+   "key": "s05",
+   "category": "school",
+   "question": "Wat deden jullie op het schoolplein in de pauze?",
+   "title": "Op het schoolplein",
+   "nl_BE": {
+    "question": "Wat deden jullie op de speelplaats tijdens de speeltijd?",
+    "title": "Op de speelplaats"
+   }
+  },
+  {
+   "key": "s06",
+   "category": "school",
+   "question": "Waar ging je naartoe na de lagere school, en wie besliste dat?",
+   "title": "Na de lagere school"
+  },
+  {
+   "key": "s07",
+   "category": "school",
+   "question": "Wie was je beste vriend of vriendin op school?",
+   "title": "Vrienden van school"
+  },
+  {
+   "key": "s08",
+   "category": "school",
+   "question": "Heb je ooit straf gekregen op school? Waarvoor?",
+   "title": "Straf"
+  },
+  {
+   "key": "s09",
+   "category": "school",
+   "question": "Hoe was het om examen te doen of je diploma te halen?",
+   "title": "Mijn diploma"
+  },
+  {
+   "key": "s10",
+   "category": "school",
+   "question": "Welk schoolreisje weet je nog?",
+   "title": "Het schoolreisje",
+   "nl_BE": {
+    "question": "Welke schoolreis herinner je je nog?",
+    "title": "De schoolreis"
+   }
+  },
+  {
+   "key": "w01",
+   "category": "werk",
+   "question": "Wat was je allereerste baantje, en wat verdiende je ermee?",
+   "title": "Mijn eerste baantje",
+   "nl_BE": {
+    "question": "Wat was je allereerste job, en wat verdiende je ermee?",
+    "title": "Mijn eerste job"
+   }
+  },
+  {
+   "key": "w02",
+   "category": "werk",
+   "question": "Hoe ben je terechtgekomen in het werk dat je het langst hebt gedaan?",
+   "title": "Hoe ik in mijn vak terechtkwam"
+  },
+  {
+   "key": "w03",
+   "category": "werk",
+   "question": "Hoe zag een gewone werkdag er voor jou uit?",
+   "title": "Een gewone werkdag"
+  },
+  {
+   "key": "w04",
+   "category": "werk",
+   "question": "Wie was de beste collega die je ooit hebt gehad?",
+   "title": "Mijn beste collega"
+  },
+  {
+   "key": "w05",
+   "category": "werk",
+   "question": "Waar ben je in je werk het meest trots op?",
+   "title": "Trots op mijn werk"
+  },
+  {
+   "key": "w06",
+   "category": "werk",
+   "question": "Wat was het moeilijkste moment in je werkende leven?",
+   "title": "Een moeilijk moment op het werk"
+  },
+  {
+   "key": "w07",
+   "category": "werk",
+   "question": "Wat verdiende je in je eerste echte baan, en wat kocht je daarvan?",
+   "title": "Mijn eerste loon",
+   "nl_BE": {
+    "question": "Wat verdiende je in je eerste echte job, en wat kocht je daarvan?",
+    "title": "Mijn eerste loon"
+   }
+  },
+  {
+   "key": "w08",
+   "category": "werk",
+   "question": "Wie zorgde bij jullie voor het huishouden, en hoe was dat?",
+   "title": "Het huishouden"
+  },
+  {
+   "key": "w09",
+   "category": "werk",
+   "question": "Hoe voelde je laatste werkdag voor je pensioen?",
+   "title": "Mijn laatste werkdag"
+  },
+  {
+   "key": "w10",
+   "category": "werk",
+   "question": "Welke les uit je werk zou je aan een jong iemand meegeven?",
+   "title": "Wat mijn werk me leerde"
+  },
+  {
+   "key": "w11",
+   "category": "werk",
+   "question": "Welk beroep had je, achteraf gezien, ook graag gedaan?",
+   "title": "Wat ik ook graag had gedaan"
+  },
+  {
+   "key": "w12",
+   "category": "werk",
+   "question": "Hoe ging je vroeger naar je werk?",
+   "title": "Onderweg naar het werk"
+  },
+  {
+   "key": "l01",
+   "category": "liefde",
+   "question": "Hoe leerde je je grote liefde kennen?",
+   "title": "Hoe we elkaar leerden kennen",
+   "starter": true
+  },
+  {
+   "key": "l02",
+   "category": "liefde",
+   "question": "Wat weet je nog van jullie eerste afspraakje?",
+   "title": "Ons eerste afspraakje"
+  },
+  {
+   "key": "l03",
+   "category": "liefde",
+   "question": "Hoe ging het aanzoek, en wie vroeg wie?",
+   "title": "Het aanzoek"
+  },
+  {
+   "key": "l04",
+   "category": "liefde",
+   "question": "Hoe zag jullie trouwdag eruit?",
+   "title": "Onze trouwdag"
+  },
+  {
+   "key": "l05",
+   "category": "liefde",
+   "question": "Waar gingen jullie wonen toen jullie net samen waren?",
+   "title": "Ons eerste huis samen"
+  },
+  {
+   "key": "l06",
+   "category": "liefde",
+   "question": "Wat is het geheim van een lange relatie, denk je?",
+   "title": "Het geheim van samen blijven"
+  },
+  {
+   "key": "l07",
+   "category": "liefde",
+   "question": "Weet je nog wie je eerste verliefdheid was?",
+   "title": "Mijn eerste verliefdheid"
+  },
+  {
+   "key": "l08",
+   "category": "liefde",
+   "question": "Welk liedje hoort bij jullie twee?",
+   "title": "Ons liedje"
+  },
+  {
+   "key": "l09",
+   "category": "liefde",
+   "question": "Hoe vierden jullie samen een jubileum of een bijzondere verjaardag?",
+   "title": "Een feest voor ons tweeën"
+  },
+  {
+   "key": "l10",
+   "category": "liefde",
+   "question": "Wat bewonder je het meest in je partner?",
+   "title": "Wat ik bewonder",
+   "sensitive": true
+  },
+  {
+   "key": "o01",
+   "category": "ouderschap",
+   "question": "Hoe was het toen je voor het eerst ouder werd?",
+   "title": "Toen ik ouder werd"
+  },
+  {
+   "key": "o02",
+   "category": "ouderschap",
+   "question": "Hoe kozen jullie de namen van jullie kinderen?",
+   "title": "Hoe de namen gekozen werden"
+  },
+  {
+   "key": "o03",
+   "category": "ouderschap",
+   "question": "Wat voor kinderen waren je kinderen toen ze klein waren?",
+   "title": "Toen de kinderen klein waren"
+  },
+  {
+   "key": "o04",
+   "category": "ouderschap",
+   "question": "Wat deden jullie als gezin in het weekend?",
+   "title": "Weekenden met het gezin"
+  },
+  {
+   "key": "o05",
+   "category": "ouderschap",
+   "question": "Waar maakte je je als ouder het meest zorgen over?",
+   "title": "Zorgen als ouder"
+  },
+  {
+   "key": "o06",
+   "category": "ouderschap",
+   "question": "Wat hoop je dat je kinderen van jou hebben meegekregen?",
+   "title": "Wat ik mijn kinderen meegaf"
+  },
+  {
+   "key": "o07",
+   "category": "ouderschap",
+   "question": "Welk moment als ouder zou je nog eens willen overdoen?",
+   "title": "Een moment om nog eens te beleven"
+  },
+  {
+   "key": "o08",
+   "category": "ouderschap",
+   "question": "Welke gewoonte van jullie gezin vond je het mooist?",
+   "title": "Onze gezinsgewoonten"
+  },
+  {
+   "key": "o09",
+   "category": "ouderschap",
+   "question": "Hoe was het toen je eerste kleinkind geboren werd?",
+   "title": "Mijn eerste kleinkind"
+  },
+  {
+   "key": "o10",
+   "category": "ouderschap",
+   "question": "Wat is het grappigste dat een van je kinderen ooit zei of deed?",
+   "title": "Kinderen zeggen de gekste dingen"
+  },
+  {
+   "key": "h01",
+   "category": "feest",
+   "question": "Hoe vierden jullie vroeger Sinterklaas? Hoe ging pakjesavond bij jullie?",
+   "title": "Sinterklaas bij ons thuis",
+   "nl_BE": {
+    "question": "Hoe vierden jullie vroeger Sinterklaas? Wat lag er 's ochtends bij je schoen?",
+    "title": "Sinterklaas bij ons thuis"
+   }
+  },
+  {
+   "key": "h02",
+   "category": "feest",
+   "question": "Hoe zag Kerstmis eruit toen jij klein was?",
+   "title": "Kerstmis van vroeger"
+  },
+  {
+   "key": "h03",
+   "category": "feest",
+   "question": "Wat deden jullie op oudejaarsavond?",
+   "title": "Oudejaarsavond"
+  },
+  {
+   "key": "h04",
+   "category": "feest",
+   "question": "Welke bruiloft of welk feest is je het meest bijgebleven?",
+   "title": "Het feest dat ik nooit vergeet"
+  },
+  {
+   "key": "h05",
+   "category": "feest",
+   "question": "Hoe ging het eraan toe op verjaardagen in de familie? Zat iedereen in een kring?",
+   "title": "Verjaardagen in de familie",
+   "nl_BE": {
+    "question": "Hoe werden verjaardagen in de familie gevierd?",
+    "title": "Verjaardagen in de familie"
+   }
+  },
+  {
+   "key": "h06",
+   "category": "feest",
+   "question": "Wat weet je nog van de kermis bij jou in de buurt?",
+   "title": "Naar de kermis",
+   "nl_BE": {
+    "question": "Wat weet je nog van de kermis of de foor bij jou in de buurt?",
+    "title": "Naar de foor"
+   }
+  },
+  {
+   "key": "h07",
+   "category": "feest",
+   "question": "Hoe vierden jullie Pasen?",
+   "title": "Pasen"
+  },
+  {
+   "key": "h08",
+   "category": "feest",
+   "question": "Welke carnaval- of volksfeesten waren er bij jou in de buurt?",
+   "title": "Feesten in de buurt"
+  },
+  {
+   "key": "h09",
+   "category": "feest",
+   "question": "Welk feest heb je zelf georganiseerd waar je trots op bent?",
+   "title": "Een feest dat ik organiseerde"
+  },
+  {
+   "key": "h10",
+   "category": "feest",
+   "question": "Welke traditie uit jouw jeugd zou je graag doorgeven?",
+   "title": "Een traditie om door te geven"
+  },
+  {
+   "key": "e01",
+   "category": "eten",
+   "question": "Welk gerecht maakte jouw moeder dat je nooit vergeet?",
+   "title": "Het gerecht dat ik nooit vergeet",
+   "starter": true
+  },
+  {
+   "key": "e02",
+   "category": "eten",
+   "question": "Wat at je graag als kind, en wat lustte je absoluut niet?",
+   "title": "Wat ik wel en niet lustte"
+  },
+  {
+   "key": "e03",
+   "category": "eten",
+   "question": "Wat stond er op zondag op het menu?",
+   "title": "Het zondagse eten"
+  },
+  {
+   "key": "e04",
+   "category": "eten",
+   "question": "Welk recept kook je zelf al jaren? Vertel eens hoe je het maakt.",
+   "title": "Mijn vaste recept"
+  },
+  {
+   "key": "e05",
+   "category": "eten",
+   "question": "Wat was een echte traktatie toen jij jong was?",
+   "title": "Een traktatie"
+  },
+  {
+   "key": "e06",
+   "category": "eten",
+   "question": "Waar deden jullie de boodschappen, en hoe ging dat?",
+   "title": "Boodschappen doen"
+  },
+  {
+   "key": "e07",
+   "category": "eten",
+   "question": "Weet je nog de eerste keer dat je uit eten ging?",
+   "title": "De eerste keer uit eten"
+  },
+  {
+   "key": "e08",
+   "category": "eten",
+   "question": "Wat kreeg je te eten als je ziek was?",
+   "title": "Eten als ik ziek was"
+  },
+  {
+   "key": "e09",
+   "category": "eten",
+   "question": "Welk gerecht hoort bij een feestdag in jullie familie?",
+   "title": "Ons feestgerecht"
+  },
+  {
+   "key": "e10",
+   "category": "eten",
+   "question": "Heb je ooit iets gekookt dat helemaal misging?",
+   "title": "Toen het misging in de keuken"
+  },
+  {
+   "key": "g01",
+   "category": "tijdgeest",
+   "question": "Wanneer hadden jullie thuis voor het eerst een televisie, en wat keken jullie?",
+   "title": "Onze eerste televisie",
+   "max_birth_year": 1965
+  },
+  {
+   "key": "g02",
+   "category": "tijdgeest",
+   "question": "Waar was je toen de mens voor het eerst op de maan liep, in 1969?",
+   "title": "De maanlanding",
+   "max_birth_year": 1962
+  },
+  {
+   "key": "g03",
+   "category": "tijdgeest",
+   "question": "Wat weet je nog van de watersnood van 1953?",
+   "title": "De watersnood",
+   "max_birth_year": 1947,
+   "region": "NL",
+   "sensitive": true
+  },
+  {
+   "key": "g04",
+   "category": "tijdgeest",
+   "question": "Wat herinner je je van Expo 58 in Brussel?",
+   "title": "Expo 58",
+   "max_birth_year": 1952,
+   "region": "BE"
+  },
+  {
+   "key": "g05",
+   "category": "tijdgeest",
+   "question": "Hoe was dat, de autoloze zondagen in 1973?",
+   "title": "De autoloze zondagen",
+   "max_birth_year": 1963
+  },
+  {
+   "key": "g06",
+   "category": "tijdgeest",
+   "question": "Welke muziek draaide je grijs toen je een tiener was?",
+   "title": "De muziek van mijn tienerjaren"
+  },
+  {
+   "key": "g07",
+   "category": "tijdgeest",
+   "question": "Wat was de eerste auto in jullie familie?",
+   "title": "Onze eerste auto"
+  },
+  {
+   "key": "g08",
+   "category": "tijdgeest",
+   "question": "Hoe ging telefoneren vroeger? Weet je nog jullie eerste telefoon?",
+   "title": "Onze eerste telefoon"
+  },
+  {
+   "key": "g09",
+   "category": "tijdgeest",
+   "question": "Welke kleren droeg je graag in je jonge jaren, en wat vonden je ouders ervan?",
+   "title": "Wat ik droeg"
+  },
+  {
+   "key": "g10",
+   "category": "tijdgeest",
+   "question": "Welk nieuwsbericht uit je leven zul je nooit vergeten, en waar was je toen?",
+   "title": "Het nieuws dat ik nooit vergat"
+  },
+  {
+   "key": "g11",
+   "category": "tijdgeest",
+   "question": "Wat kon je vroeger kopen voor een gulden?",
+   "title": "Wat een gulden waard was",
+   "region": "NL"
+  },
+  {
+   "key": "g12",
+   "category": "tijdgeest",
+   "question": "Wat kon je vroeger kopen voor een frank?",
+   "title": "Wat een frank waard was",
+   "region": "BE"
+  },
+  {
+   "key": "g13",
+   "category": "tijdgeest",
+   "question": "Hoe was het toen de euro kwam?",
+   "title": "Toen de euro kwam",
+   "max_birth_year": 1985
+  },
+  {
+   "key": "g14",
+   "category": "tijdgeest",
+   "question": "Naar welke radioprogramma's luisterden jullie thuis?",
+   "title": "De radio thuis",
+   "max_birth_year": 1960
+  },
+  {
+   "key": "r01",
+   "category": "reizen",
+   "question": "Waar ging de eerste vakantie naartoe die je je herinnert?",
+   "title": "Mijn eerste vakantie"
+  },
+  {
+   "key": "r02",
+   "category": "reizen",
+   "question": "Wat was de mooiste reis van je leven?",
+   "title": "De mooiste reis"
+  },
+  {
+   "key": "r03",
+   "category": "reizen",
+   "question": "Kampeerden jullie weleens? Vertel eens over zo'n vakantie.",
+   "title": "Kamperen"
+  },
+  {
+   "key": "r04",
+   "category": "reizen",
+   "question": "Welke plek zou je iedereen aanraden om ooit te bezoeken?",
+   "title": "Een plek om te bezoeken"
+  },
+  {
+   "key": "r05",
+   "category": "reizen",
+   "question": "Wat ging er eens helemaal mis op reis?",
+   "title": "Toen het misging op reis"
+  },
+  {
+   "key": "r06",
+   "category": "reizen",
+   "question": "Hoe reisden jullie vroeger naar je vakantieadres?",
+   "title": "Op weg naar de vakantie"
+  },
+  {
+   "key": "r07",
+   "category": "reizen",
+   "question": "Welke dagjes uit maakten jullie als gezin?",
+   "title": "Dagjes uit",
+   "nl_BE": {
+    "question": "Welke uitstapjes maakten jullie als gezin?",
+    "title": "Uitstapjes"
+   }
+  },
+  {
+   "key": "r08",
+   "category": "reizen",
+   "question": "Waar ben je nooit geweest, maar wil je nog steeds graag heen?",
+   "title": "Waar ik nog heen wil"
+  },
+  {
+   "key": "v01",
+   "category": "vriendschap",
+   "question": "Wie is je langste vriendschap, en hoe begon die?",
+   "title": "Mijn langste vriendschap"
+  },
+  {
+   "key": "v02",
+   "category": "vriendschap",
+   "question": "Waar ging je uit toen je jong was, en met wie?",
+   "title": "Uitgaan"
+  },
+  {
+   "key": "v03",
+   "category": "vriendschap",
+   "question": "Welke vriend of vriendin heeft je leven een andere kant op gestuurd?",
+   "title": "Een vriendschap die alles veranderde"
+  },
+  {
+   "key": "v04",
+   "category": "vriendschap",
+   "question": "Wat deed je op zaterdagavond toen je twintig was?",
+   "title": "Zaterdagavond"
+  },
+  {
+   "key": "v05",
+   "category": "vriendschap",
+   "question": "Welke buren zijn je altijd bijgebleven?",
+   "title": "Onze buren"
+  },
+  {
+   "key": "v06",
+   "category": "vriendschap",
+   "question": "Van welke vereniging of club was je lid?",
+   "title": "Mijn club",
+   "nl_BE": {
+    "question": "Van welke vereniging, club of jeugdbeweging was je lid?",
+    "title": "Mijn vereniging"
+   }
+  },
+  {
+   "key": "v07",
+   "category": "vriendschap",
+   "question": "Zat je bij de Chiro, de scouts of een andere jeugdbeweging? Vertel eens.",
+   "title": "De jeugdbeweging",
+   "region": "BE"
+  },
+  {
+   "key": "x01",
+   "category": "vrijetijd",
+   "question": "Welke hobby heeft je het meeste plezier gegeven?",
+   "title": "Mijn hobby"
+  },
+  {
+   "key": "x02",
+   "category": "vrijetijd",
+   "question": "Welke sport deed of volgde je, en waarom juist die?",
+   "title": "Sport"
+  },
+  {
+   "key": "x03",
+   "category": "vrijetijd",
+   "question": "Welk boek, welke film of welk liedje heeft indruk op je gemaakt?",
+   "title": "Wat indruk op me maakte"
+  },
+  {
+   "key": "x04",
+   "category": "vrijetijd",
+   "question": "Wat maakte je graag met je handen?",
+   "title": "Wat ik maakte"
+  },
+  {
+   "key": "x05",
+   "category": "vrijetijd",
+   "question": "Hoe zag een perfecte vrije dag er voor jou uit?",
+   "title": "Een perfecte vrije dag"
+  },
+  {
+   "key": "x06",
+   "category": "vrijetijd",
+   "question": "Heb je ooit een instrument bespeeld of in een koor gezongen?",
+   "title": "Muziek maken"
+  },
+  {
+   "key": "x07",
+   "category": "vrijetijd",
+   "question": "Welk spelletje werd er bij jullie thuis gespeeld?",
+   "title": "Spelletjes thuis"
+  },
+  {
+   "key": "x08",
+   "category": "vrijetijd",
+   "question": "Wat doe je nu het liefst op een rustige middag?",
+   "title": "Een rustige middag"
+  },
+  {
+   "key": "a01",
+   "category": "waarden",
+   "question": "Waar ben je in je leven het meest trots op?",
+   "title": "Waar ik trots op ben"
+  },
+  {
+   "key": "a02",
+   "category": "waarden",
+   "question": "Welke beslissing heeft je leven het meest veranderd?",
+   "title": "Een beslissing die alles veranderde"
+  },
+  {
+   "key": "a03",
+   "category": "waarden",
+   "question": "Welk advies zou je je twintigjarige zelf geven?",
+   "title": "Advies aan mezelf"
+  },
+  {
+   "key": "a04",
+   "category": "waarden",
+   "question": "Wat vind je belangrijk in het leven, en is dat in de loop der jaren veranderd?",
+   "title": "Wat ik belangrijk vind"
+  },
+  {
+   "key": "a05",
+   "category": "waarden",
+   "question": "Wie heeft jou het meest geïnspireerd?",
+   "title": "Wie me inspireerde"
+  },
+  {
+   "key": "a06",
+   "category": "waarden",
+   "question": "Waar kun je nog steeds om lachen als je eraan terugdenkt?",
+   "title": "Waar ik nog om lach"
+  },
+  {
+   "key": "a07",
+   "category": "waarden",
+   "question": "Wat is het beste advies dat je ooit hebt gekregen?",
+   "title": "Het beste advies"
+  },
+  {
+   "key": "a08",
+   "category": "waarden",
+   "question": "Welk moment zou je nog één keer willen beleven?",
+   "title": "Nog één keer"
+  },
+  {
+   "key": "a09",
+   "category": "waarden",
+   "question": "Wat heb je geleerd van een moeilijke periode?",
+   "title": "Wat een moeilijke tijd me leerde"
+  },
+  {
+   "key": "a10",
+   "category": "waarden",
+   "question": "Hoe denk je dat het leven van je kleinkinderen eruit zal zien?",
+   "title": "Het leven van mijn kleinkinderen"
+  },
+  {
+   "key": "k01",
+   "category": "kleinkinderen",
+   "question": "Wat wil je dat je kleinkinderen over jou weten?",
+   "title": "Wat mijn kleinkinderen moeten weten"
+  },
+  {
+   "key": "k02",
+   "category": "kleinkinderen",
+   "question": "Welk spelletje of liedje van vroeger zou je je kleinkinderen willen leren?",
+   "title": "Een spelletje van vroeger"
+  },
+  {
+   "key": "k03",
+   "category": "kleinkinderen",
+   "question": "Wat was vroeger beter, en wat is nu juist beter?",
+   "title": "Vroeger en nu"
+  },
+  {
+   "key": "k04",
+   "category": "kleinkinderen",
+   "question": "Welk verhaal vertel je graag aan de kinderen in de familie?",
+   "title": "Mijn lievelingsverhaal"
+  },
+  {
+   "key": "k05",
+   "category": "kleinkinderen",
+   "question": "Wat hoop je voor de toekomst van de familie?",
+   "title": "Mijn wens voor de familie"
+  },
+  {
+   "key": "k06",
+   "category": "kleinkinderen",
+   "question": "Hoe was jouw leven toen je zo oud was als je kleinkinderen nu?",
+   "title": "Toen ik zo oud was"
+  },
+  {
+   "key": "k07",
+   "category": "kleinkinderen",
+   "question": "Welke les wil je doorgeven aan de volgende generatie?",
+   "title": "Een les om door te geven"
+  },
+  {
+   "key": "k08",
+   "category": "kleinkinderen",
+   "question": "Welk woord of welke uitdrukking van vroeger hoor je nu nooit meer?",
+   "title": "Woorden van vroeger"
+  },
+  {
+   "key": "d01",
+   "category": "verlies",
+   "question": "Is er iemand die je mist en over wie je graag iets vertelt?",
+   "title": "Iemand die ik mis",
+   "sensitive": true
+  },
+  {
+   "key": "d02",
+   "category": "verlies",
+   "question": "Hoe kwam je door een moeilijke tijd heen?",
+   "title": "Door een moeilijke tijd",
+   "sensitive": true
+  },
+  {
+   "key": "d03",
+   "category": "verlies",
+   "question": "Wat zou je nog willen zeggen tegen iemand die er niet meer is?",
+   "title": "Wat ik nog zou willen zeggen",
+   "sensitive": true
+  },
+  {
+   "key": "d04",
+   "category": "verlies",
+   "question": "Welke herinnering aan je ouders koester je het meest?",
+   "title": "Een herinnering aan mijn ouders"
+  },
+  {
+   "key": "d05",
+   "category": "verlies",
+   "question": "Wat weet je nog van de oorlogsjaren, of wat vertelden je ouders erover?",
+   "title": "De oorlogsjaren",
+   "sensitive": true,
+   "max_birth_year": 1950
+  },
+  {
+   "key": "d06",
+   "category": "verlies",
+   "question": "Hoe wil je dat de familie je herinnert?",
+   "title": "Hoe ik herinnerd wil worden",
+   "sensitive": true
+  }
+ ]
+}

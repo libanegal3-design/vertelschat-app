@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Ontwikkeltools · Vertelschat{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Ontwikkeltools</h1><p class="lede">Alleen in de ontwikkelomgeving. Alles gaat door de echte code: webhooks worden ondertekend en via dezelfde verwerking gestuurd als in productie.</p></div></div>
+  <div class="cols-even">
+    <div>
+      <h2>Gereedschap</h2>
+      <ul class="versions">
+        <li><a href="/dev/whatsapp">WhatsApp-simulator</a><span class="faint">spraakberichten, knoppen, fouten</span></li>
+        <li><a href="/dev/mail">Uitgaande mail</a><span class="faint">{{ mails }} berichten</span></li>
+        <li><a href="/dev/jobs">Taken</a><span class="faint">{{ jobs.queued }} in de rij, {{ jobs.dead }} mislukt</span></li>
+        <li><a href="/dev/shop">Shopify-bestelling simuleren</a><span class="faint">orders/paid met HMAC</span></li>
+      </ul>
+      <div class="btn-row" style="margin-top:18px">
+        <form method="post" action="/dev/jobs/drain">{{ ui.csrf() }}<button class="btn btn-small" type="submit">Verwerk alle taken</button></form>
+        <form method="post" action="/dev/jobs/tick">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Planner nu uitvoeren</button></form>
+      </div>
+    </div>
+    <div>
+      <h2>Inloggen als</h2>
+      <ul class="versions">{% for u in users %}<li><span>{{ u.name or u.email }}</span><a href="/dev/login?email={{ u.email|urlencode }}">Inloggen</a></li>{% endfor %}</ul>
+      <h2 style="margin-top:28px">Tijdreis</h2>
+      <p class="small muted">Verschuift de klok van een project, zodat je het einde van het verteljaar kunt testen (permanente toegang).</p>
+      <form method="post" action="/dev/tijdreis" class="btn-row">{{ ui.csrf() }}
+        <select name="project_id" style="width:auto">{% for p in projects %}<option value="{{ p.id }}">{{ p.title }} ({{ p.status }})</option>{% endfor %}</select>
+        <select name="days" style="width:auto"><option value="336">336 dagen (laatste maand)</option><option value="400">400 dagen (afgelopen)</option><option value="420">420 dagen (na de 30 dagen extra)</option></select>
+        <button class="btn btn-quiet btn-small" type="submit">Reis</button></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

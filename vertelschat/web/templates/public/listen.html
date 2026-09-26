@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}{{ story.title }} · {{ storyteller.name if storyteller else "" }}{% endblock %}
+{% block body_class %}listen-body{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="listen">
+  <a class="wordmark" href="#" aria-label="Vertelschat">vertelschat</a>
+  <div class="listen-main">
+    <p class="kicker">{{ storyteller.name if storyteller else "" }} vertelt{% if story.first_part_at %}, {{ story.first_part_at|nl_date }}{% endif %}</p>
+    <h1>{{ story.title }}</h1>
+    {% if parts %}
+      {% for p in parts %}
+      <div style="margin-bottom:18px">{{ ui.player(None, p.duration, group="qr", bars=40, big=True, src=p.url) }}</div>
+      {% endfor %}
+      {% if parts|length > 1 %}<p class="parts-note">Dit verhaal is in {{ parts|length }} delen verteld. Ze spelen na elkaar af.</p>{% endif %}
+    {% else %}
+      <p>Deze opname is (nog) niet beschikbaar. Probeer het later nog eens.</p>
+    {% endif %}
+  </div>
+  <div class="listen-foot">
+    <p>Audiocode <span class="code">{{ link.audio_code }}</span> uit het boek <em>{{ project.title }}</em>. Deze code werkt altijd; in het eigen archief van de familie heet het bestand ook {{ link.audio_code }}.</p>
+    <p>Ben je familie? <a href="/inloggen">Log in</a> voor alle verhalen, foto's en downloads.</p>
+  </div>
+</div>
+{% endblock %}

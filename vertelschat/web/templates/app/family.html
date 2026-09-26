@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Familie · {{ project.title }}{% endblock %}
+{% block main %}
+{% set st = storyteller %}
+{% set first = st.name.split(' ')[0] if st else "de verteller" %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Familie</h1><p class="lede">Wie vertelt, en wie luistert er mee.</p></div></div>
+  <div class="cols">
+    <div>
+      <section class="section">
+        <h2>De verteller</h2>
+        <div class="teller-card">
+          <div class="avatar avatar-lamp">{{ ui.initials(st.name) }}</div>
+          <div><h3 style="margin:0">{{ st.name }}</h3>
+            <p class="muted small" style="margin:4px 0 0">
+            {% if st.identity_id and st.consent_status == "given" %}Verbonden via WhatsApp ({{ phone }}) sinds {{ st.connected_at|nl_date }}.{% if st.opted_out_at %} Vragen gestopt op {{ st.opted_out_at|nl_date }}; {{ first }} kan altijd START sturen.{% endif %}
+            {% elif st.identity_id %}Aangemeld via WhatsApp, wacht nog op toestemming.
+            {% else %}Nog niet verbonden.{% endif %}
+            Aangesproken als &ldquo;{{ st.greeting_name }}&rdquo;{% if st.birth_year %}, geboren in {{ st.birth_year }}{% endif %}, {{ "Vlaanderen" if project.locale == "nl-BE" else "Nederland" }}.</p>
+            {% if not st.identity_id and is_editor %}<a class="btn btn-lamp btn-small" style="margin-top:12px" href="/p/{{ project.id }}/verbinden">Uitnodiging versturen</a>{% endif %}
+          </div>
+        </div>
+        {% if is_editor %}
+        <details class="fold" style="margin-top:22px"><summary>Gegevens aanpassen</summary><div class="fold-body">
+          <form method="post" action="/p/{{ project.id }}/familie/verteller">{{ ui.csrf() }}
+            <div class="field-row">
+              <div class="field"><label for="name">Naam</label><input id="name" name="name" type="text" value="{{ st.name }}"></div>
+              <div class="field"><label for="address_as">Aanspreken als</label><input id="address_as" name="address_as" type="text" value="{{ st.address_as }}"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="birth_year">Geboortejaar</label><input id="birth_year" name="birth_year" type="number" value="{{ st.birth_year or '' }}"></div>
+              <div class="field"><label for="locale">Taalvariant</label><select id="locale" name="locale"><option value="nl-NL"{% if project.locale == "nl-NL" %} selected{% endif %}>Nederland</option><option value="nl-BE"{% if project.locale == "nl-BE" %} selected{% endif %}>Belgi&euml; (Vlaanderen)</option></select></div>
+            </div>
+            <button class="btn btn-quiet btn-small" type="submit">Opslaan</button>
+          </form></div></details>
+        {% endif %}
+        {% if role == "owner" and st.identity_id %}
+        <details class="fold"><summary>Ander WhatsApp-nummer koppelen</summary><div class="fold-body">
+          <p class="small">Heeft {{ first }} een nieuw nummer, of is de verkeerde persoon gekoppeld? Ontkoppel dan dit nummer. Er komt een nieuwe uitnodigingscode; de oude werkt niet meer. Alle verhalen blijven gewoon staan.</p>
+          <form method="post" action="/p/{{ project.id }}/familie/ontkoppel" data-confirm="Dit nummer ontkoppelen? Er gaan geen verhalen verloren.">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Nummer ontkoppelen</button></form>
+        </div></details>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2>Wie luisteren er mee</h2>
+        <ul class="people">
+          {% for m, u in members %}
+          <li><div class="avatar">{{ ui.initials(u.name or u.email) }}</div>
+            <div><strong>{{ u.name or u.email.split('@')[0] }}</strong>{% if u.id == me.id %} <span class="muted small">(jij)</span>{% endif %}<br><span class="muted small">{{ u.email }}</span></div>
+            <div>{% if role == "owner" and u.id != me.id %}
+              <form method="post" action="/p/{{ project.id }}/familie/leden/{{ m.id }}/rol" class="btn-row" style="gap:6px">{{ ui.csrf() }}
+                <select name="role" aria-label="Rol van {{ u.name or u.email }}" style="width:auto;min-height:40px">{% for r in ["owner", "editor", "contributor", "viewer"] %}<option value="{{ r }}"{% if m.role == r %} selected{% endif %}>{{ ROLE_LABELS[r] }}</option>{% endfor %}</select>
+                <button class="btn btn-quiet btn-small" type="submit">Wijzig</button></form>
+              {% else %}<span class="pill">{{ m.role|role_label }}</span>{% endif %}</div></li>
+          {% endfor %}
+        </ul>
+        {% if invitations %}
+        <h3 style="margin-top:28px">Uitgenodigd</h3>
+        <ul class="people">
+          {% for inv in invitations %}
+          <li><div class="avatar">{{ ui.initials(inv.email) }}</div><div><strong>{{ inv.email }}</strong><br><span class="muted small">{{ inv.role|role_label }}, uitgenodigd {{ inv.created_at|relative }}</span></div>
+            <div>{% if is_editor %}<form method="post" action="/p/{{ project.id }}/familie/uitnodigingen/{{ inv.id }}/intrekken" class="inline-form">{{ ui.csrf() }}<button class="linklike small" type="submit">Intrekken</button></form>{% endif %}</div></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </section>
+    </div>
+    <aside>
+      {% if is_editor %}
+      <div class="aside-block">
+        <h3>Iemand uitnodigen</h3>
+        <form method="post" action="/p/{{ project.id }}/familie/uitnodigen">{{ ui.csrf() }}
+          <div class="field"><label for="email">E-mailadres</label><input id="email" name="email" type="email" required></div>
+          <div class="field"><label for="role">Rol</label><select id="role" name="role"><option value="contributor">Meeverteller</option><option value="editor">Redacteur</option><option value="viewer">Lezer</option></select></div>
+          <button class="btn btn-small" type="submit">Uitnodiging sturen</button>
+        </form>
+      </div>
+      {% endif %}
+      <div class="aside-block">
+        <h3>Rollen</h3>
+        <ul class="small" style="padding-left:18px;margin:0">{% for r in ["owner", "editor", "contributor", "viewer"] %}<li><strong>{{ ROLE_LABELS[r] }}</strong>: {{ ROLE_HELP[r] }}</li>{% endfor %}</ul>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

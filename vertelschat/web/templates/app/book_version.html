@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Voorbeeld versie {{ version.version }} · {{ project.title }}{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <a class="back" href="/p/{{ project.id }}/boek">Het boek</a>
+  <div class="page-head">
+    <div><h1>Voorbeeld, versie {{ version.version }}</h1>
+      <p class="lede">{% if version.status == "ready" %}{{ version.page_count }} pagina's, {{ version.story_ids|length }} verhalen. Blader door de eerste pagina's hieronder, of open de digitale editie voor het hele boek.{% elif version.status == "rendering" %}Het boek wordt gezet. Dat duurt meestal minder dan een minuut.{% else %}Dit voorbeeld kon niet worden gemaakt.{% endif %}</p></div>
+    {% if version.status == "ready" %}
+    <div class="btn-row">
+      <a class="btn btn-quiet" href="/m/{{ version.screen_media_id }}" target="_blank" rel="noopener">Hele boek (pdf)</a>
+      {% if version.approved_at %}<span class="pill pill-ready">Goedgekeurd {{ version.approved_at|nl_date }}</span>
+      {% elif can_edit %}<form method="post" action="/p/{{ project.id }}/boek/versie/{{ version.id }}/goedkeuren" class="inline-form">{{ ui.csrf() }}<button class="btn btn-lamp" type="submit">Goedkeuren</button></form>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% if version.status == "rendering" %}
+    <div class="waiting" data-refresh-while><span class="dot" aria-hidden="true"></span><span>We zetten het boek. Deze pagina ververst vanzelf.</span></div>
+  {% elif version.status == "ready" %}
+    {% if version.warnings %}
+    <div class="flag" style="margin-bottom:28px">{{ ui.icon("flag") }}<div><p><strong>Goed om te weten</strong></p><ul class="warn-list">{% for w in version.warnings %}<li>{{ w }}</li>{% endfor %}</ul></div></div>
+    {% endif %}
+    <div class="pages">
+      {% for mid in version.preview_media_ids %}
+      <figure class="{% if loop.first %}cover-preview{% endif %}"><img src="/m/{{ mid }}" alt="{% if loop.first %}Omslag{% else %}Pagina {{ loop.index0 }}{% endif %}" loading="lazy"><figcaption>{% if loop.first %}Omslag (achterkant, rug, voorkant; indicatief){% else %}Pagina {{ loop.index0 }}{% endif %}</figcaption></figure>
+      {% endfor %}
+    </div>
+    <p class="small muted" style="margin-top:24px">Drukbestanden: <a href="/m/{{ version.interior_media_id }}?download=1">binnenwerk</a> en <a href="/m/{{ version.cover_media_id }}?download=1">omslag</a> (pdf, met afloop). De omslagmaten zijn voorlopig; de drukker levert het definitieve sjabloon.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% import "_macros.html" as ui with context %}<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#17324D">
+<title>{% block title %}{% if project %}{{ project.title }} · {% endif %}Vertelschat{% endblock %}</title>
+<link rel="preload" href="/static/fonts/Castoro-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/AtkinsonHyperlegible-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/css/app.css?v=5">
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip" href="#main">Naar de inhoud</a>
+{% if settings.dev_tools and not settings.is_production %}<div class="dev-banner">Ontwikkelomgeving: WhatsApp, mail en betalingen zijn gesimuleerd. <a href="/dev">Ontwikkeltools</a></div>{% endif %}
+{% block header %}
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="wordmark" href="/app" aria-label="Vertelschat, naar het overzicht">vertelschat</a>
+    {% if user %}
+    <div class="account">
+      <span class="who">{{ user.first_name }}</span>
+      <form method="post" action="/uitloggen">{{ ui.csrf() }}<button class="linklike" type="submit">Uitloggen</button></form>
+    </div>
+    {% endif %}
+  </div>
+</header>
+{% if project and section and section != "setup" %}
+<div class="projectbar">
+  <div class="wrap">
+    <div class="projectbar-head">
+      <a class="project-title" href="/p/{{ project.id }}">{{ project.title }}</a>
+      {% if project.status == "completed" %}<span class="pill pill-quiet">Verteljaar afgerond, alles blijft bewaard</span>{% endif %}
+    </div>
+    {% set tabs = [("overzicht", "Overzicht", "", 0), ("verhalen", "Verhalen", "/verhalen", badge_review), ("vragen", "Vragen", "/vragen", badge_suggested), ("boek", "Boek", "/boek", 0), ("familie", "Familie", "/familie", 0), ("downloads", "Downloads", "/downloads", 0), ("instellingen", "Instellingen", "/instellingen", 0)] %}
+    <nav class="tabs" aria-label="Onderdelen van dit verteljaar">
+      {% for key, label, href, badge in tabs %}
+      <a class="tab{% if section == key %} is-active{% endif %}" href="/p/{{ project.id }}{{ href }}"{% if section == key %} aria-current="page"{% endif %}>{{ label }}{% if badge %}<span class="badge" aria-label="{{ badge }} om na te kijken">{{ badge }}</span>{% endif %}</a>
+      {% endfor %}
+    </nav>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% if flash %}<div class="flash flash-{{ flash.k }}" role="status"><div class="wrap">{{ flash.m }}</div></div>{% endif %}
+<main id="main">{% block main %}{% endblock %}</main>
+{% block footer %}
+<footer class="foot"><div class="wrap">
+  <span>Vertelschat. Alles wat verteld wordt, blijft van jullie en is altijd te downloaden.</span>
+  <span><a href="{{ settings.storefront_url }}/pages/privacy">Privacy</a> &nbsp; <a href="mailto:{{ settings.support_email }}">{{ settings.support_email }}</a></span>
+</div></footer>
+{% endblock %}
+<script src="/static/js/app.js?v=3" defer></script>
+</body>
+</html>

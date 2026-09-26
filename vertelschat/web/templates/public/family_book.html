@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · Vertelschat{% endblock %}
+{% block body_class %}family-body{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="familybook">
+  <a class="wordmark wordmark-dark" href="{{ settings.storefront_url }}" aria-label="Vertelschat">vertelschat</a>
+  <div class="familybook-grid">
+    <div class="familybook-cover">{% if has_cover %}<img src="/boek/{{ token }}/omslag" alt="Omslag van {{ title }}" width="420" height="560">{% endif %}</div>
+    <div class="familybook-copy">
+      <h1>{{ title }}</h1>
+      {% if subtitle %}<p class="lede">{{ subtitle }}</p>{% endif %}
+      <p>Het boek is klaar. Een jaar lang vertelde {{ first_name or "de verteller" }} verhalen via WhatsApp. Ze staan in dit hardcover boek van 17 bij 24 centimeter, {{ pages }} pagina's, met bij elk verhaal een QR-code naar de echte stem.</p>
+      <form method="get" action="/boek/{{ token }}/bestellen" class="familybook-order" data-family-form data-first="{{ price_first }}" data-next="{{ price_next }}">
+        <label for="aantal">Aantal exemplaren</label>
+        <div class="stepper"><button type="button" class="stepper-btn" data-step="-1" aria-label="Eén minder">&minus;</button><input id="aantal" type="number" name="aantal" value="1" min="1" max="20" inputmode="numeric"><button type="button" class="stepper-btn" data-step="1" aria-label="Eén meer">+</button></div>
+        <p class="order-sum" data-family-sum>{{ price_first }}, gratis verzonden in Nederland en België.</p>
+        <button class="btn btn-lamp" type="submit" data-family-submit>Bestel een exemplaar</button>
+      </form>
+      <p class="small muted">Eerste exemplaar {{ price_first }}, elk volgend exemplaar in hetzelfde pakket {{ price_next }}. Je betaalt veilig in de winkel van Vertelschat; daar vul je ook het adres in. Levertijd ongeveer twee tot drie weken.</p>
+      <p class="small muted">Je hebt deze pagina gekregen van iemand uit de familie. Je ziet hier alleen de titel en de omslag; de verhalen zelf staan in het boek.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

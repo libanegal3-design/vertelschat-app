@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Verteljaar instellen · Vertelschat{% endblock %}
+{% block main %}
+<div class="wrap page">
+  {% include "app/_steps.html" %}
+  <div class="cols">
+    <div>
+      <h1>Voor wie is dit verteljaar?</h1>
+      {% if family %}<p class="flag-note">Deze verteller komt bij <strong>{{ family.name }}</strong>. Iedereen die daar al meeleest, kan ook deze verhalen volgen.</p>{% endif %}
+      <p class="lede">We gebruiken deze gegevens alleen om de vragen persoonlijk te maken. Je kunt alles later nog aanpassen.</p>
+      <form method="post" action="/start" class="stack" style="margin-top:28px">
+        {{ ui.csrf() }}
+        <div class="field-row">
+          <div class="field"><label for="name">Naam van de verteller</label>
+            <input id="name" name="name" type="text" required autocomplete="off" value="{{ entitlement.recipient_name if entitlement else '' }}" placeholder="Bijvoorbeeld Marijke Jansen"></div>
+          <div class="field"><label for="address_as">Hoe spreken we haar of hem aan?<span class="hint">In de WhatsApp-berichten. Meestal de voornaam.</span></label>
+            <input id="address_as" name="address_as" type="text" autocomplete="off" placeholder="Marijke"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="birth_year">Geboortejaar <span class="hint">Niet verplicht. Dan passen de vragen beter bij haar of zijn tijd.</span></label>
+            <input id="birth_year" name="birth_year" type="number" inputmode="numeric" min="1900" max="2015" placeholder="1951"></div>
+          <div class="field"><label for="your_name">Jouw voornaam<span class="hint">"Sanne heeft Vertelschat voor je geregeld."</span></label>
+            <input id="your_name" name="your_name" type="text" autocomplete="given-name" value="{{ user.name.split(' ')[0] if user and user.name else '' }}"></div>
+        </div>
+        <fieldset>
+          <legend>Waar woont de verteller?</legend>
+          <div class="radio-cards">
+            <label class="radio-card"><input type="radio" name="locale" value="nl-NL" checked><strong>Nederland</strong><span class="muted small">Vragen met Nederlandse woorden en herinneringen</span></label>
+            <label class="radio-card"><input type="radio" name="locale" value="nl-BE"><strong>Belgi&euml; (Vlaanderen)</strong><span class="muted small">Vlaamse woorden, zoals woensdagnamiddag en de jeugdbeweging</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Is het een cadeau?</legend>
+          <div class="radio-cards">
+            <label class="radio-card"><input type="radio" name="kind" value="gift" checked><strong>Ja, ik geef het cadeau</strong><span class="muted small">De berichten vermelden dat jij het hebt geregeld</span></label>
+            <label class="radio-card"><input type="radio" name="kind" value="self"><strong>Nee, het is voor mezelf</strong><span class="muted small">Ik vertel zelf mijn verhalen</span></label>
+          </div>
+        </fieldset>
+        <div class="field"><label for="gift_message">Persoonlijke boodschap <span class="hint">Voor op de cadeaukaart. Niet verplicht.</span></label>
+          <textarea id="gift_message" name="gift_message" rows="3" placeholder="Ik ben zo benieuwd naar je verhalen, mam.">{{ entitlement.gift_message if entitlement else '' }}</textarea></div>
+        <div class="btn-row"><button class="btn btn-lamp" type="submit">Volgende: het ritme</button></div>
+      </form>
+    </div>
+    <aside>
+      <div class="aside-block">
+        <h3>Zo gaat het straks</h3>
+        <ol class="small" style="padding-left:18px;margin:0">
+          <li>Je stuurt de verteller een berichtje met een link, of geeft de cadeaukaart.</li>
+          <li>Eén tik en &eacute;&eacute;n keer op verzenden, en de verteller doet mee.</li>
+          <li>Er komt een vraag via WhatsApp. Antwoorden kan met een gewoon spraakbericht.</li>
+          <li>Jij krijgt de opname, de uitgeschreven tekst en het verhaal.</li>
+        </ol>
+      </div>
+      <div class="aside-block"><h3>Geen app, geen account</h3><p class="small">De verteller hoeft niets te installeren en nergens in te loggen. Alleen WhatsApp, zoals altijd.</p></div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

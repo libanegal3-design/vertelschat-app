@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}WhatsApp-simulator · Vertelschat{% endblock %}
+{% block main %}
+{% set label = (idents|selectattr("phone", "equalto", phone)|map(attribute="label")|first) if idents else "" %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>WhatsApp-simulator</h1>
+    <p class="lede">Dit is geen WhatsApp: het bootst de Cloud API-webhooks na. Elk bericht wordt ondertekend met het app-geheim en gaat door <code>ingest_webhook()</code>, net als in productie.</p></div></div>
+  <div class="sim">
+    <div class="sim-controls">
+      <div class="panel">
+        <h3>Nummer</h3>
+        <form method="get" action="/dev/whatsapp" class="row">
+          <select name="nr" aria-label="Bekend nummer">{% for i in idents %}<option value="{{ i.phone }}"{% if i.phone == phone %} selected{% endif %}>{{ i.label }} ({{ i.masked }})</option>{% endfor %}<option value="31612345678"{% if phone == "31612345678" %} selected{% endif %}>+31 6 12345678 (demo)</option><option value="32470123456"{% if phone == "32470123456" %} selected{% endif %}>+32 470 12 34 56 (demo BE)</option><option value="31699999999"{% if phone == "31699999999" %} selected{% endif %}>+31 6 99999999 (onbekend)</option></select>
+          <button class="btn btn-quiet btn-small" type="submit">Kies</button></form>
+        <form method="get" action="/dev/whatsapp" class="row" style="margin-top:8px"><input type="text" name="nr" placeholder="Ander nummer, bv. 31687654321" aria-label="Ander nummer"><button class="btn btn-quiet btn-small" type="submit">Gebruik</button></form>
+        {% if pending %}
+        <p class="small muted" style="margin:12px 0 6px">Aanmelden met de uitnodigingscode (zoals de verteller na het tikken op de link):</p>
+        {% for st in pending %}
+        <form method="post" action="/dev/whatsapp" class="row" style="margin-bottom:6px"><input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="name" value="{{ st.name }}"><input type="hidden" name="action" value="join"><input type="hidden" name="code" value="{{ st.join_code }}">
+          <button class="btn btn-small" type="submit">Stuur code {{ st.join_code }}</button><span class="small">{{ st.name }}</span></form>
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h3>Spraakbericht</h3>
+        <form method="post" action="/dev/whatsapp" enctype="multipart/form-data">
+          <input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="name" value="{{ label }}">
+          <div class="row"><select name="fixture" aria-label="Voorbeeldopname">{% for f in fixtures %}<option value="{{ f.file }}">{{ f.label }}</option>{% endfor %}</select></div>
+          <div class="row" style="margin-top:8px"><label class="small" style="font-weight:400">Of eigen bestand: <input type="file" name="upload" accept="audio/*"></label></div>
+          <div class="row" style="margin-top:8px">
+            <select name="context" aria-label="Antwoord op"><option value="">Geen antwoord op een bericht</option>{% for o in outbound|reverse %}<option value="{{ o.wamid }}">Antwoord op: {{ (o.body_text or o.msg_type)[:48] }}</option>{% endfor %}</select>
+            <label class="small" style="font-weight:400"><input type="checkbox" name="forwarded" value="1"> doorgestuurd</label></div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-small" name="action" value="voice" type="submit">Stuur spraakbericht</button>
+            <button class="btn btn-quiet btn-small" name="action" value="corrupt" type="submit">Beschadigd bestand</button>
+            <button class="btn btn-quiet btn-small" name="action" value="faildownload" type="submit">Download faalt 3&times;</button>
+            <button class="btn btn-quiet btn-small" name="action" value="badchecksum" type="submit">Verkeerde checksum</button>
+          </div>
+          <input type="hidden" name="process" value="1">
+        </form>
+      </div>
+
+      <div class="panel">
+        <h3>Tekst</h3>
+        <form method="post" action="/dev/whatsapp">
+          <input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="name" value="{{ label }}"><input type="hidden" name="action" value="text">
+          <textarea name="text" aria-label="Tekst" placeholder="Typ een bericht"></textarea>
+          <div class="row" style="margin-top:8px"><select name="context" aria-label="Antwoord op"><option value="">Geen antwoord op een bericht</option>{% for o in outbound|reverse %}<option value="{{ o.wamid }}">Antwoord op: {{ (o.body_text or o.msg_type)[:48] }}</option>{% endfor %}</select><button class="btn btn-small" type="submit">Stuur</button></div>
+        </form>
+        <div class="row" style="margin-top:10px">
+          {% for kw in ["Ja", "VRAAG", "PAUZE", "STOP", "START", "HULP"] %}
+          <form method="post" action="/dev/whatsapp"><input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="action" value="text"><input type="hidden" name="text" value="{{ kw }}"><button class="btn btn-quiet btn-small" type="submit">{{ kw }}</button></form>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Foto en overige</h3>
+        <form method="post" action="/dev/whatsapp" enctype="multipart/form-data" class="row">
+          <input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="action" value="image">
+          <select name="photo" aria-label="Voorbeeldfoto"><option value="huis.jpg">Voorbeeldfoto: huis</option><option value="tent.jpg">Voorbeeldfoto: tent</option></select>
+          <input type="text" name="caption" placeholder="Onderschrift" aria-label="Onderschrift">
+          <button class="btn btn-small" type="submit">Stuur foto</button></form>
+        <div class="row" style="margin-top:10px">
+          {% for a, t in [("sticker", "Sticker"), ("unsupported", "Niet-ondersteund type"), ("revoke", "Laatste spraakbericht verwijderen"), ("duplicate", "Laatste webhook nogmaals")] %}
+          <form method="post" action="/dev/whatsapp"><input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="action" value="{{ a }}"><button class="btn btn-quiet btn-small" type="submit">{{ t }}</button></form>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Afleverstatus van een uitgaand bericht</h3>
+        <form method="post" action="/dev/whatsapp" class="row">
+          <input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="action" value="status">
+          <select name="wamid" aria-label="Bericht">{% for o in outbound|reverse %}<option value="{{ o.wamid }}">{{ (o.body_text or o.msg_type)[:40] }}</option>{% endfor %}</select>
+          <select name="status" aria-label="Status"><option value="delivered">afgeleverd</option><option value="read">gelezen</option><option value="failed">mislukt</option></select>
+          <select name="code" aria-label="Foutcode"><option value="131026">131026 niet afleverbaar</option><option value="131049">131049 limiet</option><option value="131047">131047 venster dicht</option></select>
+          <button class="btn btn-quiet btn-small" type="submit">Afleveren</button></form>
+      </div>
+      <p class="small muted">Taken in de rij: {{ jobs_waiting }}. <a href="/dev/jobs">Bekijk taken</a> &nbsp; <a href="/dev/mail">Bekijk mail</a></p>
+    </div>
+
+    <div class="phone" aria-label="Gesprek">
+      <div class="phone-screen">
+        <div class="phone-top"><span class="av">v</span><div><strong>Vertelschat</strong><small>gesimuleerd gesprek met {{ label or "dit nummer" }}</small></div></div>
+        <div class="chat" id="chat">
+          {% if not thread %}<p class="small" style="text-align:center;color:#6B7682;margin-top:40px">Nog geen berichten met dit nummer.</p>{% endif %}
+          {% for t in thread %}{% set m = t.m %}
+            {% if m.msg_type == "reaction" %}
+              <div class="msg reaction">&#10084;&#65039;<span class="meta">reactie</span></div>
+            {% else %}
+            <div class="msg {{ 'in' if m.direction == 'in' else 'out' }}">
+              {%- if m.direction == "in" and m.msg_type == "audio" -%}
+                {% if t.audio %}<audio controls preload="none" src="{{ t.audio }}"></audio>{% else %}<span class="sys">Spraakbericht ({{ t.media_status }})</span>{% endif %}
+                {% if t.rec %}<span class="sys">opname: {{ t.rec.status }}{% if t.rec.hold_reason %}, wacht: {{ t.rec.hold_reason }}{% endif %}</span>{% endif %}
+              {%- elif m.direction == "in" and m.msg_type == "image" -%}
+                {% if t.image %}<img src="{{ t.image }}" alt="">{% else %}<span class="sys">Foto ({{ t.media_status }})</span>{% endif %}{% if m.body_text %}{{ m.body_text }}{% endif %}
+              {%- else -%}
+                {{ m.body_text or ("[" ~ m.msg_type ~ "]") }}
+              {%- endif -%}
+              {% if t.buttons %}<div class="btns">{% for b in t.buttons %}<form method="post" action="/dev/whatsapp"><input type="hidden" name="phone" value="{{ phone }}"><input type="hidden" name="action" value="button"><input type="hidden" name="button_id" value="{{ b.id }}"><input type="hidden" name="button_title" value="{{ b.title }}"><button type="submit">{{ b.title }}</button></form>{% endfor %}</div>{% endif %}
+              <span class="meta">{{ m.created_at.strftime("%H:%M") }}{% if m.direction == "out" %} &middot; {{ m.status }}{% if m.msg_type == "template" %} &middot; sjabloon{% endif %}{% endif %}</span>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/static/js/dev.js" defer></script>
+{% endblock %}

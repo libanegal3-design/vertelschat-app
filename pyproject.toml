@@ -1,0 +1,10 @@
+[project]
+name = "vertelschat"
+version = "1.0.0"
+description = "Family memories via ordinary WhatsApp voice notes, ending in a book with QR codes to the real voice."
+requires-python = ">=3.12"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

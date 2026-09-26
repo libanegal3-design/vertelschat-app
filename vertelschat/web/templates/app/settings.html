@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Instellingen · {{ project.title }}{% endblock %}
+{% block main %}
+{% set owner = role == "owner" %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Instellingen</h1></div></div>
+  <div class="cols">
+    <div>
+      <section class="section">
+        <h2>Jouw meldingen</h2>
+        <form method="post" action="/p/{{ project.id }}/instellingen/meldingen">{{ ui.csrf() }}
+          <div class="field" style="max-width:420px"><label for="name">Je naam</label><input id="name" name="name" type="text" value="{{ me.name }}" autocomplete="name"></div>
+          <fieldset><legend>Wanneer wil je een mail?</legend><div class="radio-cards">
+            <label class="radio-card"><input type="radio" name="notify_mode" value="immediate"{% if me.notify_mode == "immediate" %} checked{% endif %}><strong>Bij elk nieuw verhaal</strong><span class="muted small">Aanbevolen</span></label>
+            <label class="radio-card"><input type="radio" name="notify_mode" value="daily"{% if me.notify_mode == "daily" %} checked{% endif %}><strong>Alleen belangrijke dingen</strong><span class="muted small">Zoals een vraag die niet aankwam</span></label>
+            <label class="radio-card"><input type="radio" name="notify_mode" value="off"{% if me.notify_mode == "off" %} checked{% endif %}><strong>Geen mail</strong><span class="muted small">Je ziet alles hier</span></label>
+          </div></fieldset>
+          <button class="btn btn-quiet btn-small" type="submit">Opslaan</button>
+        </form>
+      </section>
+
+      {% if owner %}
+      <section class="section">
+        <h2>Vragen en uitschrijven</h2>
+        <form method="post" action="/p/{{ project.id }}/instellingen/project">{{ ui.csrf() }}
+          <label class="check"><input type="checkbox" name="sensitive" value="1"{% if project.sensitive_topics %} checked{% endif %}><span><strong>Ook vragen over gevoelige onderwerpen</strong><br><span class="muted">Zoals verlies, de oorlog of ziekte. Standaard stellen we die niet.</span></span></label>
+          <div class="field"><label for="vocabulary">Namen en plaatsen <span class="hint">Helpt bij het uitschrijven: namen van familie, straten, dorpen. Gescheiden door komma's.</span></label>
+            <textarea id="vocabulary" name="vocabulary" rows="3" placeholder="Henk, Zwolle, Assendorp, Van Nelle">{{ project.vocabulary }}</textarea></div>
+          <button class="btn btn-quiet btn-small" type="submit">Opslaan</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <h2>QR-codes in het boek</h2>
+        <p class="small muted">Standaard kan iedereen met het boek in handen de opnames beluisteren, net zoals iedereen het boek kan lezen. De codes zijn niet te raden. Wil je extra zekerheid, stel dan een pincode in en zet die voor in het boek.</p>
+        <form method="post" action="/p/{{ project.id }}/instellingen/qr">{{ ui.csrf() }}
+          <div class="radio-cards" style="margin-bottom:16px">
+            <label class="radio-card"><input type="radio" name="mode" value="link"{% if not qr_pin %} checked{% endif %}><strong>Zonder pincode</strong><span class="muted small">Scannen en luisteren</span></label>
+            <label class="radio-card"><input type="radio" name="mode" value="pin"{% if qr_pin %} checked{% endif %}><strong>Met pincode</strong><span class="muted small">Eenmalig per telefoon</span></label>
+          </div>
+          <div class="field" style="max-width:260px"><label for="pin">Pincode <span class="hint">4 tot 8 cijfers</span></label><input id="pin" name="pin" type="tel" inputmode="numeric" maxlength="8" autocomplete="off"></div>
+          <button class="btn btn-quiet btn-small" type="submit">Opslaan</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <h2>Alles verwijderen</h2>
+        {% if project.deletion_requested_at %}
+        <p>Verwijdering aangevraagd op {{ project.deletion_requested_at|nl_date }}. Alles wordt 14 dagen daarna definitief gewist.</p>
+        <form method="post" action="/p/{{ project.id }}/instellingen/annuleren">{{ ui.csrf() }}<button class="btn btn-small" type="submit">Toch niet verwijderen</button></form>
+        {% else %}
+        <p class="small">Hiermee wissen we alle opnames, teksten, foto's, boeken en de QR-codes. We wachten 14 dagen, zodat je je kunt bedenken; download eerst het archief als je iets wilt bewaren. Wil je alleen de vragen stoppen? Dat kan bij Vragen, of de verteller stuurt STOP.</p>
+        <form method="post" action="/p/{{ project.id }}/instellingen/verwijderen" data-confirm="Weet je het zeker? Na 14 dagen is alles definitief weg.">{{ ui.csrf() }}
+          <div class="field" style="max-width:420px"><label for="confirm">Typ ter bevestiging de titel: <em>{{ project.title }}</em></label><input id="confirm" name="confirm" type="text" autocomplete="off"></div>
+          <button class="btn btn-danger btn-small" type="submit">Verwijderen aanvragen</button>
+        </form>
+        {% endif %}
+      </section>
+      {% endif %}
+    </div>
+    <aside>
+      <div class="aside-block">
+        <h3>Het verteljaar</h3>
+        {% if project.status == "active" %}<p class="small">Er komen vragen tot {{ project.active_until|nl_date }}. Daarna blijft alles gewoon te bekijken, te beluisteren en te downloaden.</p>
+        {% elif project.status == "completed" %}<p class="small">Afgerond op {{ project.completed_at|nl_date if project.completed_at else project.active_until|nl_date }}. Alles blijft bewaard en te downloaden; de QR-codes blijven werken.</p>
+        {% else %}<p class="small">Het verteljaar begint zodra de verteller ja zegt via WhatsApp.</p>{% endif %}
+        <p class="small">Nog een jaar vragen? <a href="{{ renewal_url }}">Nog een verteljaar</a> kost {{ renewal_options[0].price }}, inclusief een boektegoed voor deel 2 of een extra exemplaar.{% if renewal_options|length > 1 %} Jij kocht Vertelschat onder de oude voorwaarden: <a href="{{ renewal_legacy_url }}">verlengen zonder boektegoed</a> blijft voor jou {{ renewal_options[1].price }}.{% endif %} Verlengen is nooit nodig om bij je verhalen te kunnen.</p>
+      </div>
+      <div class="aside-block">
+        <h3>Privacy</h3>
+        <p class="small">Opnames en teksten worden in de EU opgeslagen en alleen gebruikt om jullie verhalen te maken. Ze worden nooit gebruikt om AI-modellen te trainen. <a href="{{ settings.storefront_url }}/pages/privacy">Privacyverklaring</a></p>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

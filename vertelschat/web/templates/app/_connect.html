@@ -1,0 +1,32 @@
+{% set first = storyteller.name.split(' ')[0] %}
+<div class="connect-grid">
+  <div class="option">
+    <span class="num">1</span>
+    <h3>Stuur het via WhatsApp</h3>
+    <p class="small muted">Het makkelijkst. Je stuurt {{ first }} dit berichtje vanaf je eigen telefoon; {{ first }} tikt op de link en drukt op verzenden.</p>
+    <div class="bubble" id="invite-text">{{ invite_text }}</div>
+    <div class="btn-row">
+      <a class="btn btn-lamp btn-small" href="{{ share_link }}" target="_blank" rel="noopener">Open WhatsApp</a>
+      <button class="btn btn-quiet btn-small" type="button" data-copy="#invite-text">Kopieer tekst</button>
+    </div>
+  </div>
+  <div class="option">
+    <span class="num">2</span>
+    <h3>Geef de cadeaukaart</h3>
+    <p class="small muted">Print de kaart, vouw hem dubbel en geef hem persoonlijk. Op de kaart staat een QR-code: scannen met de camera, op verzenden drukken, klaar.</p>
+    <div class="btn-row"><a class="btn btn-quiet btn-small" href="/p/{{ project.id }}/cadeaukaart.pdf" target="_blank">Cadeaukaart (pdf)</a></div>
+    <p class="small muted" style="margin-top:12px">Liever iets om echt uit te pakken? Het <a href="{{ gift_package_url }}">cadeaupakket</a> ({{ gift_package_price }}) komt per post: de kaart op stevig papier, een uitlegboekje in grote letters en een doosje dat door de brievenbus past.</p>
+  </div>
+  <div class="option">
+    <span class="num">3</span>
+    <h3>Samen, aan tafel</h3>
+    <p class="small muted">Laat {{ first }} deze code scannen met de camera van haar of zijn eigen telefoon.</p>
+    <div class="joinqr" aria-label="QR-code om mee te doen via WhatsApp">{{ join_qr }}</div>
+    <p class="small muted">Lukt scannen niet? Stuur <span class="code-big" style="font-size:1.05rem">{{ join_code }}</span> via WhatsApp naar {{ display_number or "het Vertelschat-nummer" }}.</p>
+  </div>
+</div>
+<div class="waiting{% if storyteller.consent_status == 'given' %} is-done{% endif %}" style="margin-top:26px" data-poll-status="/api/p/{{ project.id }}/status" data-done-text="{{ first }} doet mee! De eerste vraag is verstuurd." data-linked-text="{{ first }} heeft zich aangemeld en ziet nu de welkomstvraag.">
+  <span class="dot" aria-hidden="true"></span>
+  <span data-status-text aria-live="polite">{% if storyteller.consent_status == 'given' %}{{ first }} doet mee! De eerste vraag is verstuurd.{% elif storyteller.identity_id %}{{ first }} heeft zich aangemeld en ziet nu de welkomstvraag.{% else %}Wachten tot {{ first }} het berichtje verstuurt. Deze pagina werkt zichzelf bij.{% endif %}</span>
+  <a class="btn btn-lamp btn-small" href="/p/{{ project.id }}" data-done-link{% if storyteller.consent_status != 'given' %} hidden{% endif %} style="margin-left:auto">Naar het overzicht</a>
+</div>

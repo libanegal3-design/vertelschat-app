@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Je verteljaren · Vertelschat{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Je verteljaren</h1><p class="lede">Alles wat je familie vertelt, op één plek.</p></div></div>
+  {% if no_entitlement %}
+  <div class="empty">
+    <h2>Er staat nog geen verteljaar klaar</h2>
+    <p>Met een verteljaar krijgt je vader, moeder, oma of opa een jaar lang vragen via WhatsApp. Zij antwoorden met een spraakbericht; jij krijgt de verhalen, de stem en aan het eind een boek.</p>
+    <a class="btn btn-lamp" href="{{ settings.storefront_url }}/products/verteljaar">Bekijk het verteljaar</a>
+  </div>
+  {% endif %}
+  {% if entitlements %}
+  <div class="aside-block aside-lamp" style="max-width:720px;margin-bottom:28px">
+    <h3>Er {{ "staat een verteljaar" if entitlements|length == 1 else "staan " ~ entitlements|length ~ " verteljaren" }} klaar</h3>
+    <p>Stel het in een paar minuten in: voor wie het is, hoe vaak er een vraag komt en welke vragen eerst.{% if entitlements[0].family_id or entitlements[0].group_id %} De nieuwe verteller komt in dezelfde familie, dus iedereen die al meeleest hoort er meteen bij.{% endif %}</p>
+    <a class="btn" href="/start">Nu instellen</a>
+  </div>
+  {% endif %}
+  {% if rows %}
+  <ul class="story-list">
+    {% for project, role in rows %}
+    <li class="story-item">
+      <div class="no-audio" aria-hidden="true">{{ ui.icon("mic") }}</div>
+      <div>
+        <h3><a href="/p/{{ project.id }}">{{ project.title }}</a></h3>
+        <div class="meta"><span>{{ role|role_label }}</span>
+          <span>{% if project.status == "active" %}Loopt tot {{ project.active_until|nl_date }}{% elif project.status == "completed" %}Afgerond, alles blijft bewaard{% else %}Nog niet gestart{% endif %}</span></div>
+      </div>
+      <div class="side"><a class="btn btn-quiet btn-small" href="/p/{{ project.id }}">Openen</a></div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if add_urls %}
+  <div class="add-teller">
+    <h2>Nog een verteller?</h2>
+    <p>Bijvoorbeeld de andere ouder, een oma of een opa. Een tweede verteller in dezelfde familie kost {{ second_price }}: een eigen jaar vragen en een eigen boek. Wie nu meeleest, hoort er meteen bij.</p>
+    {% for fid, url in add_urls.items() %}<a class="btn btn-quiet" href="{{ url }}">Voeg een verteller toe</a>{% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

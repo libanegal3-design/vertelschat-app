@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Instellen · {{ project.title }}{% endblock %}
+{% block main %}
+{% set first = storyteller.name.split(' ')[0] %}
+<div class="wrap page">
+  {% include "app/_steps.html" %}
+  {% if step == "ritme" %}
+  <div class="cols"><div>
+    <h1>Hoe vaak komt er een vraag?</h1>
+    <p class="lede">Rustig aan werkt het best. De meeste families kiezen &eacute;&eacute;n vraag per week, op een moment dat {{ first }} tijd heeft.</p>
+    <form method="post" style="margin-top:28px">{{ ui.csrf() }}
+      <fieldset><legend>Ritme</legend><div class="radio-cards">
+        {% for days, label in cadences.items() %}<label class="radio-card"><input type="radio" name="cadence" value="{{ days }}"{% if schedule.cadence_days == days %} checked{% endif %}><strong>{{ label }}</strong>{% if days == 7 %}<span class="muted small">Ongeveer 50 vragen in een jaar</span>{% elif days == 14 %}<span class="muted small">Ongeveer 26 vragen</span>{% else %}<span class="muted small">Ongeveer 13 vragen</span>{% endif %}</label>{% endfor %}
+      </div></fieldset>
+      <div class="field-row">
+        <div class="field"><label for="weekday">Op welke dag?</label><select id="weekday" name="weekday">{% for d in WEEKDAYS %}<option value="{{ loop.index0 }}"{% if schedule.weekday == loop.index0 %} selected{% endif %}>{{ d }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="hour">Hoe laat?</label><select id="hour" name="hour">{% for h in range(8, 21) %}<option value="{{ h }}"{% if schedule.send_hour == h %} selected{% endif %}>{{ "%02d"|format(h) }}:00</option>{% endfor %}</select></div>
+      </div>
+      <label class="check"><input type="checkbox" name="wait" value="1"{% if schedule.wait_for_answer %} checked{% endif %}><span><strong>Wacht op een antwoord</strong><br><span class="muted">Geen nieuwe vraag zolang de vorige nog open staat. Zo stapelen de vragen zich nooit op.</span></span></label>
+      <div class="btn-row" style="margin-top:18px"><button class="btn btn-lamp" type="submit">Volgende: eerste vragen</button></div>
+    </form>
+  </div>
+  <aside><div class="aside-block"><h3>Niets is vast</h3><p class="small">Je kunt het ritme altijd wijzigen of de vragen een tijdje pauzeren. {{ first }} kan zelf ook PAUZE of STOP sturen.</p></div></aside></div>
+
+  {% elif step == "vragen" %}
+  <div class="cols"><div>
+    <h1>Met welke vragen beginnen we?</h1>
+    <p class="lede">Deze vragen zijn door mensen geschreven, niet door een computer. De eerste zijn makkelijk: over jeugd, huis en vroeger. Kies er een paar, of laat het aan ons over.</p>
+    <form method="post" style="margin-top:24px">{{ ui.csrf() }}
+      <ul class="suggest-list">
+        {% for e in suggestions %}{% set q = e.nl_BE.question if (project.locale == 'nl-BE' and e.nl_BE) else e.question %}
+        <li><label class="check"><input type="checkbox" name="keys" value="{{ e.key }}"{% if e.key in chosen or (not chosen and loop.index <= 3) %} checked{% endif %}><span>{{ q }}</span></label></li>
+        {% endfor %}
+      </ul>
+      <div class="field"><label for="custom">Of schrijf zelf een vraag <span class="hint">Bijvoorbeeld iets wat je altijd al wilde weten.</span></label><textarea id="custom" name="custom" rows="2" placeholder="Hoe heb je papa eigenlijk leren kennen?"></textarea></div>
+      <div class="btn-row"><button class="btn btn-lamp" type="submit">Volgende: familie</button></div>
+    </form>
+  </div>
+  <aside><div class="aside-block"><h3>Na deze vragen</h3><p class="small">Daarna kiezen we steeds een passende vraag uit onze bibliotheek van ruim 160 vragen, afgewisseld over de onderwerpen. Jij kunt de wachtrij altijd aanpassen.</p></div>
+  <div class="aside-block"><h3>Gevoelige onderwerpen</h3><p class="small">Vragen over verlies, oorlog of ziekte stellen we alleen als je dat bij Instellingen aanzet.</p></div></aside></div>
+
+  {% elif step == "familie" %}
+  <div class="cols"><div>
+    <h1>Wie luistert er mee?</h1>
+    <p class="lede">Nodig broers, zussen of kleinkinderen uit. Zij krijgen een melding bij elk nieuw verhaal en kunnen zelf vragen voorstellen. Je kunt dit ook later doen.</p>
+    <form method="post" style="margin-top:24px">{{ ui.csrf() }}
+      {% for i in range(1, 4) %}
+      <div class="field-row">
+        <div class="field"><label for="email{{ i }}">E-mailadres</label><input id="email{{ i }}" name="email{{ i }}" type="email" autocomplete="off" placeholder="naam@voorbeeld.nl"></div>
+        <div class="field"><label for="role{{ i }}">Rol</label><select id="role{{ i }}" name="role{{ i }}"><option value="contributor">Meeverteller</option><option value="editor">Redacteur</option><option value="viewer">Lezer</option></select></div>
+      </div>
+      {% endfor %}
+      {% if invitations %}<p class="small muted">Al uitgenodigd: {% for inv in invitations %}{{ inv.email }}{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+      <div class="btn-row"><button class="btn btn-lamp" type="submit">Volgende: {{ first }} verbinden</button><a class="btn btn-quiet" href="/p/{{ project.id }}/instellen/verbinden">Overslaan</a></div>
+    </form>
+  </div>
+  <aside><div class="aside-block"><h3>Rollen</h3><ul class="small" style="padding-left:18px;margin:0">{% for r in ["editor", "contributor", "viewer"] %}<li><strong>{{ ROLE_LABELS[r] }}</strong>: {{ ROLE_HELP[r] }}</li>{% endfor %}</ul></div></aside></div>
+
+  {% elif step == "verbinden" %}
+  <h1>Verbind {{ first }} met WhatsApp</h1>
+  <p class="lede" style="max-width:62ch">Kies wat het best past. {{ first }} hoeft niets te installeren en nergens in te loggen. Daarna vraagt Vertelschat eerst om toestemming, en pas dan komt de eerste vraag.</p>
+  <div style="margin-top:28px">{% include "app/_connect.html" %}</div>
+  <p style="margin-top:22px"><a href="/p/{{ project.id }}">Later doen, naar het overzicht</a></p>
+  {% endif %}
+</div>
+{% endblock %}

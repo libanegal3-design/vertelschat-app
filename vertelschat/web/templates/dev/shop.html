@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Bestelling simuleren · Vertelschat{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Shopify-bestelling simuleren</h1><p class="lede">Stuurt een ondertekende <code>orders/paid</code>-webhook naar dezelfde verwerking als de echte winkel.</p></div></div>
+  <form method="post" action="/dev/shop" style="max-width:640px">{{ ui.csrf() }}
+    <div class="field-row">
+      <div class="field"><label for="email">E-mail koper</label><input id="email" name="email" type="email" value="nieuw@voorbeeld.nl" required></div>
+      <div class="field"><label for="first_name">Voornaam</label><input id="first_name" name="first_name" type="text" value="Joost"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="sku">Product</label><select id="sku" name="sku"><option value="VT-VERTELJAAR">Verteljaar (&euro;129)</option><option value="VT-EXTRA-BOEK">Extra boek (&euro;45)</option><option value="VT-VERLENGING">Nog een verteljaar (&euro;69)</option><option value="VT-CADEAUKAART">Cadeaukaart per post (&euro;4,95)</option></select></div>
+      <div class="field"><label for="quantity">Aantal</label><input id="quantity" name="quantity" type="number" value="1" min="1"></div>
+    </div>
+    <label class="check"><input type="checkbox" name="gift" value="1" checked><span>Cadeau</span></label>
+    <div class="field-row">
+      <div class="field"><label for="voor">Voor</label><input id="voor" name="voor" type="text" value="Riet Peeters"></div>
+      <div class="field"><label for="project">Project-id (extra boek of verlenging)</label><input id="project" name="project" type="text"></div>
+    </div>
+    <div class="field"><label for="boodschap">Boodschap</label><textarea id="boodschap" name="boodschap" rows="2">Voor oma, met liefs.</textarea></div>
+    <button class="btn" type="submit">Verstuur webhook</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Taken · Vertelschat{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Taken</h1><p class="lede">De wachtrij van de worker: ophalen, uitschrijven, verhalen maken, vragen versturen.</p></div>
+    <div class="btn-row"><form method="post" action="/dev/jobs/drain">{{ ui.csrf() }}<button class="btn btn-small" type="submit">Verwerk alles</button></form><form method="post" action="/dev/jobs/tick">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Planner</button></form></div></div>
+  <div class="table-wrap"><table class="jobs-table">
+    <thead><tr><th>#</th><th>Soort</th><th>Status</th><th>Pogingen</th><th>Volgende poging</th><th>Fout</th><th></th></tr></thead>
+    <tbody>{% for j in rows %}<tr><td>{{ j.id }}</td><td>{{ j.kind }}</td><td>{{ j.status }}</td><td>{{ j.attempts }}/{{ j.max_attempts }}</td><td>{{ j.run_after.strftime("%d-%m %H:%M:%S") if j.run_after else "" }}</td><td class="small">{{ (j.last_error or "")[:140] }}</td>
+      <td>{% if j.status == "dead" %}<form method="post" action="/dev/jobs/retry">{{ ui.csrf() }}<input type="hidden" name="job_id" value="{{ j.id }}"><button class="linklike" type="submit">Opnieuw</button></form>{% endif %}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}

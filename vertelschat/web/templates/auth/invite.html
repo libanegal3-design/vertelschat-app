@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Uitnodiging · Vertelschat{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="auth">
+  {% include "auth/_side.html" %}
+  <section class="auth-main"><div class="auth-box">
+    <h1>{% if inviter %}{{ inviter.first_name }} nodigt je uit{% else %}Je bent uitgenodigd{% endif %}</h1>
+    <p>Voor <strong>{{ project.title if project else "een familieproject" }}</strong>. Je kunt meeluisteren, meelezen en zelf vragen voorstellen. Rol: {{ invitation.role|role_label|lower }}.</p>
+    <form method="post" action="/inloggen">
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="email">Je e-mailadres</label>
+        <input id="email" name="email" type="email" autocomplete="email" required value="{{ invitation.email }}">
+        <span class="hint">We sturen een link om de uitnodiging te accepteren. Geen wachtwoord nodig.</span>
+      </div>
+      <button class="btn btn-lamp" type="submit">Uitnodiging accepteren</button>
+    </form>
+  </div></section>
+</div>
+{% endblock %}

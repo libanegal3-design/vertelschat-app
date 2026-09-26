@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}{{ story.title or "Verhaal" }} · {{ project.title }}{% endblock %}
+{% block main %}
+{% set first = storyteller.name.split(' ')[0] if storyteller else "de verteller" %}
+<div class="wrap page">
+  <a class="back" href="/p/{{ project.id }}/verhalen">Alle verhalen</a>
+  <div class="cols">
+    <article>
+      <header class="story-head">
+        <div class="btn-row" style="gap:8px;margin-bottom:14px">{{ ui.story_status(story) }}
+          {% if not story.include_in_book %}<span class="pill">Niet in het boek</span>{% endif %}
+          {% if story.hidden_at %}<span class="pill">Verborgen</span>{% endif %}</div>
+        <h1>{{ story.title or "Nog zonder titel" }}</h1>
+        {% if prompt %}<p class="q">{{ prompt.text }}</p>{% endif %}
+        <div class="meta">
+          {% if story.first_part_at %}<span>Verteld op {{ story.first_part_at|nl_date }}</span>{% endif %}
+          {% if parts|length > 1 %}<span>{{ parts|length }} delen</span>{% endif %}
+        </div>
+      </header>
+
+      {% if story.review_flags %}
+      <div style="margin-top:26px">
+      {% for f in story.review_flags %}
+        <div class="flag{% if f.level == 'info' %} flag-info{% endif %}">{{ ui.icon("flag" if f.level == "check" else "info") }}<div>
+          <p>{{ f.text }}</p>
+          {% if can_edit %}
+            {% if f.code == "ai_suggestion" and story.ai_suggestion_body %}
+              <details class="fold" style="border:0"><summary>Nieuwe versie bekijken</summary><div class="fold-body"><div class="reading small">{% for para in story.ai_suggestion_body|paras %}<p>{{ para }}</p>{% endfor %}</div></div></details>
+              <div class="btn-row">
+                <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/ai" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="choice" value="accept"><button class="btn btn-small" type="submit">Nieuwe versie overnemen</button></form>
+                <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/ai" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="choice" value="dismiss"><button class="btn btn-quiet btn-small" type="submit">Mijn versie houden</button></form>
+              </div>
+            {% elif f.code not in ("forwarded",) %}
+              <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/markering" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="code" value="{{ f.code }}"><button class="btn btn-quiet btn-small" type="submit">{% if f.level == "check" %}Klopt, gecontroleerd{% else %}Begrepen{% endif %}</button></form>
+            {% endif %}
+          {% endif %}
+        </div></div>
+      {% endfor %}
+      </div>
+      {% endif %}
+
+      <section class="section" style="margin-top:26px" aria-label="Opnames">
+        <ol class="parts">
+        {% for p in parts %}{% set r = p.rec %}
+          <li class="part">
+            <div class="part-head">
+              <strong>{% if parts|length > 1 %}Deel {{ loop.index }}{% else %}De opname{% endif %}{% if r.kind == "text" %}, tekstbericht{% endif %}</strong>
+              <span>{{ r.received_at|nl_datetime }}{% if r.source == "upload" %}, zelf toegevoegd{% endif %}{% if r.forwarded %}, doorgestuurd{% endif %}</span>
+            </div>
+            {% if r.retracted_at %}
+              <p class="muted small">{{ first }} heeft dit bericht in WhatsApp verwijderd. Het telt niet meer mee.</p>
+            {% elif r.kind == "audio" %}
+              {% if r.playback_media_id %}{{ ui.player(r.playback_media_id, r.duration_seconds, group="story") }}
+              {% elif r.status == "downloading" %}<p class="muted small"><span class="pill pill-busy"><span class="dot"></span>Wordt opgehaald bij WhatsApp</span></p>
+              {% elif r.status == "download_failed" %}<p class="small">Dit spraakbericht kon niet worden opgehaald bij WhatsApp. Het staat nog wel in de chat van {{ first }}; vraag of het opnieuw gestuurd kan worden.</p>
+              {% elif r.status == "corrupt" %}<p class="small">Dit bestand kwam beschadigd binnen. Het origineel is bewaard{% if r.original_media_id %} (<a href="/m/{{ r.original_media_id }}?download=1">downloaden</a>){% endif %}.</p>
+              {% else %}<p class="muted small"><span class="pill pill-busy"><span class="dot"></span>Wordt verwerkt</span></p>{% endif %}
+              {% if r.hold_reason == "forwarded" %}
+                <div class="flag" style="margin-top:12px">{{ ui.icon("flag") }}<div><p>Dit is een doorgestuurd spraakbericht. Is het de stem van {{ first }}?</p>
+                {% if can_edit %}<div class="btn-row">
+                  <form method="post" action="/p/{{ project.id }}/opnames/{{ r.id }}/bevestig" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="keep" value="1"><button class="btn btn-small" type="submit">Ja, verwerken</button></form>
+                  <form method="post" action="/p/{{ project.id }}/opnames/{{ r.id }}/bevestig" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="keep" value="0"><button class="btn btn-quiet btn-small" type="submit">Nee, uit het verhaal halen</button></form>
+                </div>{% endif %}</div></div>
+              {% elif r.hold_reason == "consent" %}<p class="small muted">Wacht op toestemming van {{ first }}. De opname is al veilig bewaard.</p>
+              {% elif r.hold_reason == "assignment" %}<p class="small muted">{{ first }} kiest nog bij welk verhaal dit hoort.</p>
+              {% elif r.hold_reason == "after_period" %}<p class="small muted">Ontvangen na het verteljaar: bewaard en te downloaden, niet automatisch uitgeschreven.</p>{% endif %}
+            {% else %}
+              <div class="transcript" style="margin-top:0">{{ r.text_content }}</div>
+            {% endif %}
+            {% if not r.retracted_at %}
+            <div class="dl-links" style="margin-top:10px">
+              {% if r.original_media_id and r.status not in ("downloading",) %}<a href="/m/{{ r.original_media_id }}?download=1">Origineel downloaden</a>{% endif %}
+              {% if r.playback_media_id %}<a href="/m/{{ r.playback_media_id }}?download=1">Mp3 downloaden</a>{% endif %}
+              {% if r.duration_seconds %}<span class="faint">{{ r.duration_seconds|duration }}</span>{% endif %}
+            </div>
+            {% if p.transcript and r.kind == "audio" %}
+            <details class="fold" style="margin-top:10px"><summary>Letterlijke tekst</summary><div class="fold-body"><div class="transcript">{{ p.transcript.text }}</div>
+              <p class="small faint" style="margin-top:8px">Automatisch uitgeschreven{% if p.transcript.provider %} ({{ p.transcript.provider }}){% endif %}. Het verhaal hierboven is hiervan afgeleid; de opname blijft altijd de bron.</p></div></details>
+            {% endif %}
+            {% if r.status == "transcription_failed" and can_edit %}
+            <details class="fold" open><summary>Tekst zelf invullen</summary><div class="fold-body">
+              <form method="post" action="/p/{{ project.id }}/opnames/{{ r.id }}/tekst">{{ ui.csrf() }}<div class="field"><label for="t-{{ r.id }}">Wat wordt er gezegd?</label><textarea id="t-{{ r.id }}" name="text" rows="6"></textarea></div><button class="btn btn-small" type="submit">Opslaan</button></form>
+              <form method="post" action="/p/{{ project.id }}/opnames/{{ r.id }}/opnieuw" style="margin-top:10px">{{ ui.csrf() }}<button class="linklike" type="submit">Of probeer het automatisch opnieuw</button></form>
+            </div></details>
+            {% endif %}
+            {% if can_edit %}
+            <details class="fold"><summary>Hoort dit deel ergens anders bij?</summary><div class="fold-body">
+              <form method="post" action="/p/{{ project.id }}/opnames/{{ r.id }}/verplaats" class="btn-row">{{ ui.csrf() }}
+                <select name="target" style="max-width:420px" aria-label="Verplaats naar"><option value="nieuw">Een nieuw, los verhaal</option>{% for o in others %}<option value="{{ o.id }}">{{ o.title or "Nog zonder titel" }}</option>{% endfor %}</select>
+                <button class="btn btn-quiet btn-small" type="submit">Verplaatsen</button></form>
+            </div></details>
+            {% endif %}
+            {% endif %}
+          </li>
+        {% endfor %}
+        </ol>
+      </section>
+
+      <section class="section" aria-label="Het verhaal">
+        {% if story.body %}<div class="reading">{% for para in story.body|paras %}<p>{{ para }}</p>{% endfor %}</div>
+        {% else %}<p class="muted">De tekst verschijnt hier zodra de opname is uitgeschreven.</p>{% endif %}
+        {% if can_edit %}
+        <details class="fold" style="margin-top:18px"><summary>Tekst bewerken</summary><div class="fold-body">
+          <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/bewaar">{{ ui.csrf() }}
+            <div class="field"><label for="title">Titel</label><input id="title" name="title" type="text" value="{{ story.title }}"></div>
+            <div class="field"><label for="body">Verhaal<span class="hint">Jouw bewerking blijft staan. Komt er later nog een stukje bij, dan krijg je de nieuwe versie als voorstel.</span></label>
+              <textarea class="story-editor" id="body" name="body">{{ story.body }}</textarea></div>
+            <button class="btn" type="submit">Opslaan</button>
+          </form></div></details>
+        {% endif %}
+      </section>
+
+      <section class="section" aria-labelledby="h-fotos">
+        <div class="section-title"><h2 id="h-fotos">Foto's</h2></div>
+        {% if photos %}
+        <div class="photo-grid">{% for ph in photos %}{% if ph.asset and ph.asset.status == "stored" %}<figure><a href="/m/{{ ph.asset.id }}" target="_blank"><img src="/m/{{ ph.asset.id }}" alt="{{ ph.photo.caption or 'Foto bij dit verhaal' }}" loading="lazy"></a>{% if ph.photo.caption %}<figcaption>{{ ph.photo.caption }}</figcaption>{% endif %}</figure>{% endif %}{% endfor %}</div>
+        {% else %}<p class="muted small">Nog geen foto's. {{ first }} kan ze gewoon via WhatsApp sturen, of je voegt ze hier toe.</p>{% endif %}
+        {% if is_contributor and editable %}
+        <details class="fold" style="margin-top:14px"><summary>Foto toevoegen</summary><div class="fold-body">
+          <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/foto" enctype="multipart/form-data">{{ ui.csrf() }}
+            <div class="field"><label for="file">Foto <span class="hint">JPG, PNG of WebP, tot 25 MB. Voor het boek liefst zo groot mogelijk.</span></label><input id="file" type="file" name="file" accept="image/jpeg,image/png,image/webp" required></div>
+            <div class="field"><label for="caption">Onderschrift</label><input id="caption" name="caption" type="text" placeholder="Zwolle, rond 1958"></div>
+            <button class="btn btn-quiet btn-small" type="submit">Toevoegen</button></form></div></details>
+        {% endif %}
+      </section>
+    </article>
+
+    <aside>
+      <div class="aside-block">
+        <h3>In het boek</h3>
+        {% if qr %}
+        <div class="qr-mini">{{ qr_svg }}<div><span class="qr-code">{{ qr.audio_code }}</span><p class="small muted" style="margin:8px 0 0;word-break:break-all">{{ qr_display }}</p></div></div>
+        <p class="small" style="margin-top:12px">Deze QR-code staat straks bij het verhaal en blijft altijd werken. <a href="/v/{{ qr.token }}">Bekijk wat de lezer ziet</a>.</p>
+        {% else %}<p class="small muted">De QR-code volgt zodra er een opname is.</p>{% endif %}
+        {% if can_edit %}
+        <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/boek" style="margin-top:14px">{{ ui.csrf() }}
+          <button class="btn btn-quiet btn-small" type="submit">{% if story.include_in_book %}Niet in het boek{% else %}Wel in het boek{% endif %}</button></form>
+        <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/hoofdstuk" style="margin-top:14px">{{ ui.csrf() }}
+          <label for="chapter_id" class="small">Hoofdstuk</label>
+          <div class="btn-row"><select id="chapter_id" name="chapter_id" style="flex:1;min-height:42px">{% for ch in chapters %}<option value="{{ ch.id }}"{% if ch.id == story.chapter_id %} selected{% endif %}>{{ ch.title }}</option>{% endfor %}<option value=""{% if not story.chapter_id %} selected{% endif %}>Zonder hoofdstuk</option></select>
+          <button class="btn btn-quiet btn-small" type="submit">Opslaan</button></div></form>
+        {% endif %}
+      </div>
+      {% if attachments %}
+      <div class="aside-block"><h3>Bijlagen</h3><ul class="versions">{% for a in attachments %}<li><span>{{ a.original_filename or (a.kind ~ " van " ~ (a.created_at|nl_date)) }}</span><a href="/m/{{ a.id }}?download=1">Download</a></li>{% endfor %}</ul></div>
+      {% endif %}
+      {% if revisions %}
+      <div class="aside-block"><h3>Versies</h3>
+        <ul class="versions">{% for rev in revisions %}<li><span>{{ rev.created_at|relative }}, {% if rev.author_kind == "ai" %}automatisch{% else %}bewerkt{% endif %}</span>
+          {% if can_edit and not loop.first %}<form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/versie" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="revision_id" value="{{ rev.id }}"><button class="linklike small" type="submit">Terugzetten</button></form>{% elif loop.first %}<span class="faint small">huidig</span>{% endif %}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+      {% if can_edit %}
+      <form method="post" action="/p/{{ project.id }}/verhalen/{{ story.id }}/verberg" style="margin-top:18px">{{ ui.csrf() }}<button class="linklike small" type="submit">{% if story.hidden_at %}Verhaal weer tonen{% else %}Verhaal verbergen{% endif %}</button></form>
+      <p class="small faint">Verbergen wist niets: de opnames blijven bewaard en te downloaden.</p>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

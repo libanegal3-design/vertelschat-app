@@ -1,0 +1,17 @@
+<li class="story-item">
+  {% if row.play_id %}{{ ui.miniplay(row.play_id, row.duration) }}{% else %}<div class="no-audio" aria-hidden="true">{{ ui.icon("text") }}</div>{% endif %}
+  <div>
+    <h3><a href="/p/{{ project.id }}/verhalen/{{ row.story.id }}">{{ row.story.title or "Nog zonder titel" }}</a></h3>
+    {% if row.question %}<p class="q">{{ row.question }}</p>{% endif %}
+    <div class="meta">
+      <span>{{ row.story.last_part_at|relative }}</span>
+      {% if row.duration %}<span>{{ row.duration|spoken }}</span>{% endif %}
+      {% if row.parts > 1 %}<span>{{ row.parts }} delen</span>{% endif %}
+      {% if row.photos %}<span>{{ plural(row.photos, "foto", "foto's") }}</span>{% endif %}
+      {% if row.qr %}<span>Audiocode {{ row.qr.audio_code }}</span>{% endif %}
+      {% if row.waiting %}<span>{{ plural(row.waiting, "deel wacht", "delen wachten") }}</span>{% endif %}
+    </div>
+    {% if row.story.body %}<p class="excerpt">{{ row.story.body|excerpt }}</p>{% endif %}
+  </div>
+  <div class="side">{{ ui.story_status(row.story) }}</div>
+</li>

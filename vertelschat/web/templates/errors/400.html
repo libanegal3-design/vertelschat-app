@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Er ging iets mis · Vertelschat{% endblock %}
+{% block main %}<div class="wrap"><div class="error-page">
+<h1>Dat lukte niet</h1>
+<p class="lede">{{ message or "Probeer het nog een keer." }}</p>
+<div class="btn-row"><a class="btn" href="javascript:history.back()">Ga terug</a></div>
+</div></div>{% endblock %}

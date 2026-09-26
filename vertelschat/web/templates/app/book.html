@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Het boek · {{ project.title }}{% endblock %}
+{% block main %}
+{% set first = storyteller.name.split(' ')[0] if storyteller else "de verteller" %}
+<div class="wrap page">
+  <div class="page-head">
+    <div><h1>Het boek</h1>
+      <p class="lede">Een hardcover van 17 bij 24 centimeter, met bij elk verhaal een QR-code naar de stem van {{ first }}. Tot nu toe ongeveer {{ pages }} pagina's.</p></div>
+    {% if can_edit %}<form method="post" action="/p/{{ project.id }}/boek/voorbeeld" class="inline-form">{{ ui.csrf() }}<button class="btn btn-lamp" type="submit">Voorbeeld maken</button></form>{% endif %}
+  </div>
+  <div class="cols">
+    <div>
+      <section class="section" id="indeling">
+        <div class="section-title"><h2>Indeling</h2><span class="muted small">Hoofdstukken ontstaan vanzelf; je kunt ze hernoemen en schuiven</span></div>
+        {% for ch in chapters %}{% set items = by_ch.get(ch.id, []) %}
+        <div class="chapter">
+          <div class="chapter-head"><h3>{{ ch.title }}</h3>
+            {% if can_edit %}<div class="btn-row" style="gap:6px">
+              <form method="post" action="/p/{{ project.id }}/boek/hoofdstukken/{{ ch.id }}/omhoog" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Hoofdstuk eerder"{% if loop.first %} disabled{% endif %}>{{ ui.icon("up") }}</button></form>
+              <form method="post" action="/p/{{ project.id }}/boek/hoofdstukken/{{ ch.id }}/omlaag" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Hoofdstuk later"{% if loop.last %} disabled{% endif %}>{{ ui.icon("down") }}</button></form>
+              {% if not items %}<form method="post" action="/p/{{ project.id }}/boek/hoofdstukken/{{ ch.id }}/verwijder" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Leeg hoofdstuk verwijderen">{{ ui.icon("x") }}</button></form>{% endif %}
+            </div>{% endif %}
+          {% if can_edit %}<details class="rename"><summary>Hernoemen</summary>
+            <form method="post" action="/p/{{ project.id }}/boek/hoofdstukken/{{ ch.id }}/hernoem" class="btn-row">{{ ui.csrf() }}<input type="text" name="title" value="{{ ch.title }}" style="max-width:360px" aria-label="Nieuwe titel"><button class="btn btn-quiet btn-small" type="submit">Opslaan</button></form></details>{% endif %}
+          </div>
+          <ol>
+            {% for s in items %}
+            <li class="{% if not s.include_in_book %}is-out{% endif %}"><div><a href="/p/{{ project.id }}/verhalen/{{ s.id }}">{{ s.title or "Nog zonder titel" }}</a>
+              {% if not s.include_in_book %}<span class="small"> (niet in het boek)</span>{% endif %}
+              {% if s.status == "needs_review" %} <span class="pill pill-check">nakijken</span>{% elif s.status == "processing" %} <span class="pill pill-busy">wordt verwerkt</span>{% endif %}</div>
+              {% if can_edit %}<div class="btn-row" style="gap:6px">
+                <form method="post" action="/p/{{ project.id }}/boek/verhalen/{{ s.id }}/omhoog" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Eerder in het hoofdstuk"{% if loop.first %} disabled{% endif %}>{{ ui.icon("up") }}</button></form>
+                <form method="post" action="/p/{{ project.id }}/boek/verhalen/{{ s.id }}/omlaag" class="inline-form">{{ ui.csrf() }}<button class="iconbtn" type="submit" aria-label="Later in het hoofdstuk"{% if loop.last %} disabled{% endif %}>{{ ui.icon("down") }}</button></form>
+              </div>{% endif %}</li>
+            {% else %}<li class="is-out">Nog geen verhalen in dit hoofdstuk.</li>{% endfor %}
+          </ol>
+        </div>
+        {% endfor %}
+        {% if by_ch.get(None) %}
+        <div class="chapter"><div class="chapter-head"><h3>Zonder hoofdstuk</h3></div>
+          <ol>{% for s in by_ch.get(None) %}<li><div><a href="/p/{{ project.id }}/verhalen/{{ s.id }}">{{ s.title or "Nog zonder titel" }}</a></div>
+            {% if can_edit %}<form method="post" action="/p/{{ project.id }}/boek/verhalen/{{ s.id }}/hoofdstuk" class="btn-row" style="gap:6px">{{ ui.csrf() }}<select name="chapter_id" aria-label="Kies hoofdstuk" style="width:auto;min-height:40px">{% for ch in chapters %}<option value="{{ ch.id }}">{{ ch.title }}</option>{% endfor %}</select><button class="btn btn-quiet btn-small" type="submit">Plaatsen</button></form>{% endif %}</li>{% endfor %}</ol></div>
+        {% endif %}
+        {% if can_edit %}
+        <form method="post" action="/p/{{ project.id }}/boek/hoofdstuk" class="btn-row" style="margin-top:22px">{{ ui.csrf() }}
+          <input type="text" name="title" placeholder="Nieuw hoofdstuk, bijvoorbeeld Rotterdam" style="max-width:360px" aria-label="Titel van het nieuwe hoofdstuk" required>
+          <button class="btn btn-quiet btn-small" type="submit">Hoofdstuk toevoegen</button></form>
+        {% endif %}
+      </section>
+
+      <section class="section" id="versies">
+        <div class="section-title"><h2>Voorbeelden</h2></div>
+        {% if versions %}
+        <ul class="versions">
+          {% for v in versions %}
+          <li><span><a href="/p/{{ project.id }}/boek/versie/{{ v.id }}">Versie {{ v.version }}</a>, {{ v.created_at|relative }}{% if v.page_count %}, {{ v.page_count }} pagina's{% endif %}</span>
+            <span>{% if v.status == "rendering" %}<span class="pill pill-busy"><span class="dot"></span>Wordt gemaakt</span>{% elif v.approved_at %}<span class="pill pill-ready">Goedgekeurd</span>{% elif v.status == "ready" %}<span class="pill">Klaar om te bekijken</span>{% else %}<span class="pill pill-danger">Mislukt</span>{% endif %}</span></li>
+          {% endfor %}
+        </ul>
+        {% else %}<p class="muted">Nog geen voorbeeld gemaakt. Een voorbeeld is gratis en je kunt er zoveel maken als je wilt.</p>{% endif %}
+      </section>
+
+      <section class="section" id="bestellen">
+        <h2>Bestellen</h2>
+        {% set pct = (pages * 100 / pricing.BASE_PAGES) if pages < pricing.BASE_PAGES else 100 %}
+        <div class="pagemeter{% if tier != 0 %} is-over{% endif %}">
+          <div class="pagemeter-bar" aria-hidden="true"><span style="width:{{ pct|round|int }}%"></span></div>
+          <p class="small">{% if estimated %}Naar schatting {% endif %}<strong>{{ pages }} pagina's</strong>. Tot {{ pricing.BASE_PAGES }} pagina's zit in de prijs.
+          {% if tier == 1 %}Dit boek wordt wat dikker: tot 320 pagina's kost drukken {{ pricing.eur(pricing.TIER_SURCHARGE[1]) }} extra per exemplaar. Liever niet? Laat een paar verhalen weg bij Indeling.
+          {% elif tier == 2 %}Dit boek wordt dik: tot 400 pagina's kost drukken {{ pricing.eur(pricing.TIER_SURCHARGE[2]) }} extra per exemplaar. Je kunt ook verhalen weglaten, of het boek in twee delen maken.
+          {% elif tier is none %}Meer dan {{ pricing.MAX_PAGES }} pagina's past niet in één band. Laat verhalen weg of maak twee delen; neem gerust contact op, we denken mee.{% endif %}</p>
+        </div>
+
+        {% if open_order %}
+        <div class="flag" style="margin:18px 0">{{ ui.icon("flag") }}<div>
+          <p><strong>Er staat nog een bestelling klaar om te betalen</strong></p>
+          <p class="small">{{ open_order.quantity }} {{ "exemplaar" if open_order.quantity == 1 else "exemplaren" }} naar {{ open_order.shipping.get("plaats", "") }}. We drukken pas als alles betaald is; je tegoed blijft zolang voor deze bestelling gereserveerd.</p>
+          <div class="btn-row">
+            <form method="post" action="/p/{{ project.id }}/boek/bestelling-afrekenen" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="order_id" value="{{ open_order.id }}"><button class="btn btn-small btn-lamp" type="submit">Afrekenen</button></form>
+            <form method="post" action="/p/{{ project.id }}/boek/bestelling-annuleren" class="inline-form">{{ ui.csrf() }}<input type="hidden" name="order_id" value="{{ open_order.id }}"><button class="btn btn-small btn-quiet" type="submit">Annuleren</button></form>
+          </div></div></div>
+        {% endif %}
+
+        {% if approved and is_editor and tier is not none %}
+        <form method="post" action="/p/{{ project.id }}/boek/bestellen" class="orderform" data-order-form
+              data-credits="{{ credits.available }}" data-first="{{ pricing.copy_price('first', tier) }}"
+              data-next="{{ pricing.copy_price('next', tier) }}" data-surcharge="{{ pricing.TIER_SURCHARGE[tier] }}">{{ ui.csrf() }}
+          <input type="hidden" name="version_id" value="{{ approved.id }}">
+          <h3>Hoeveel exemplaren wil je laten maken?</h3>
+          <p class="small muted">Voor jezelf, voor broers en zussen, voor de kleinkinderen. Alles gaat in één pakket naar dit adres, gratis verzonden. Versie {{ approved.version }}, goedgekeurd {{ approved.approved_at|nl_date }}.</p>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-step="-1" aria-label="Eén minder">&minus;</button>
+            <input type="number" name="quantity" value="1" min="1" max="20" inputmode="numeric" aria-label="Aantal exemplaren">
+            <button type="button" class="stepper-btn" data-step="1" aria-label="Eén meer">+</button>
+          </div>
+          <p class="order-sum" data-order-sum aria-live="polite">{% if credits.available %}1 exemplaar uit je boektegoed{% if tier %} (+ {{ pricing.eur(pricing.TIER_SURCHARGE[tier]) }} voor de extra pagina's){% endif %}.{% else %}1 exemplaar: {{ pricing.eur(pricing.copy_price('first', tier)) }}.{% endif %}</p>
+          <div class="field"><label for="naam">Naam</label><input id="naam" name="naam" type="text" autocomplete="name" required></div>
+          <div class="field"><label for="straat">Straat en huisnummer</label><input id="straat" name="straat" type="text" autocomplete="street-address" required></div>
+          <div class="field-row">
+            <div class="field"><label for="postcode">Postcode</label><input id="postcode" name="postcode" type="text" autocomplete="postal-code" required></div>
+            <div class="field"><label for="plaats">Plaats</label><input id="plaats" name="plaats" type="text" autocomplete="address-level2" required></div>
+            <div class="field"><label for="land">Land</label><select id="land" name="land"><option>Nederland</option><option>Belgi&euml;</option></select></div>
+          </div>
+          <button class="btn btn-lamp" type="submit" data-order-submit>{% if credits.available and not tier %}Bestellen{% else %}Verder naar betalen{% endif %}</button>
+          <p class="small muted" style="margin-top:12px">Het eerste betaalde exemplaar in een pakket kost {{ pricing.eur(pricing.copy_price('first', tier)) }}, elk volgend exemplaar in hetzelfde pakket {{ pricing.eur(pricing.copy_price('next', tier)) }}: het scheelt ons een verzending, dat geven we door. Naar verschillende adressen? Bestel per adres, of deel de familielink hieronder.</p>
+        </form>
+        {% elif not approved %}<p class="muted">Maak eerst een voorbeeld en keur het goed. Daarna kies je hier hoeveel exemplaren je wilt.</p>
+        {% endif %}
+
+        {% if orders %}
+        <ul class="versions" style="margin-top:18px">{% for o in orders %}<li><span>{{ o.quantity }} &times; boek, {{ o.created_at|nl_date }}, naar {{ o.shipping.get("plaats", "") }}{% if o.source == "family_link" %} (via familielink){% endif %}</span><span class="pill">{% if o.status == "cancelled" %}Geannuleerd{% elif o.payment_status in ("awaiting_payment", "partly_paid") %}Wacht op betaling{% elif o.status == "awaiting_submission" %}Wordt verwerkt{% elif o.status == "submitted" %}Bij de drukker{% elif o.status == "shipped" %}Verzonden{% else %}{{ o.status }}{% endif %}</span></li>{% endfor %}</ul>
+        {% endif %}
+
+        <div class="share-family" id="familie">
+          <h3>Deel met familie</h3>
+          {% if approved and is_editor %}
+            {% if family_link %}
+            <p class="small">Stuur deze link naar wie ook een boek wil. Zij bestellen en betalen zelf ({{ pricing.eur(pricing.copy_price('first', tier or 0)) }}, gratis verzonden) en zien alleen de omslag en de titel, niet jullie verhalen.{% if family_link.copies_ordered %} Tot nu toe {{ family_link.copies_ordered }} {{ "exemplaar" if family_link.copies_ordered == 1 else "exemplaren" }} besteld.{% endif %}</p>
+            <div class="copyfield"><input id="family-link" type="text" readonly value="{{ family_url }}" aria-label="Familielink"><button class="btn btn-quiet btn-small" type="button" data-copy="#family-link">Kopieer</button></div>
+            <div class="btn-row" style="margin-top:10px"><a class="btn btn-small" href="https://wa.me/?text={{ ('Het boek met de verhalen van ' ~ storyteller.greeting_name ~ ' is klaar. Wil je zelf ook een exemplaar? ' ~ family_url)|urlencode }}" target="_blank" rel="noopener">Deel via WhatsApp</a>
+              <form method="post" action="/p/{{ project.id }}/boek/familielink-intrekken" class="inline-form">{{ ui.csrf() }}<button class="linkbtn small" type="submit">Link intrekken</button></form></div>
+            {% else %}
+            <p class="small">Maak een privélink waarmee familieleden zelf een exemplaar bestellen en betalen. Ze hebben geen account nodig en zien alleen de omslag, de titel en de prijs.</p>
+            <form method="post" action="/p/{{ project.id }}/boek/familielink">{{ ui.csrf() }}<button class="btn btn-quiet btn-small" type="submit">Maak een familielink</button></form>
+            {% endif %}
+          {% else %}<p class="small muted">Na het goedkeuren van het boek kun je hier een privélink maken, zodat familie zelf een exemplaar kan bestellen.</p>{% endif %}
+        </div>
+      </section>
+    </div>
+
+    <aside>
+      <div class="aside-block">
+        <h3>Titel en omslag</h3>
+        {% if can_edit %}
+        <form method="post" action="/p/{{ project.id }}/boek/instellingen">{{ ui.csrf() }}
+          <div class="field"><label for="btitle">Titel</label><input id="btitle" name="title" type="text" value="{{ book.title }}" maxlength="120"></div>
+          <div class="field"><label for="subtitle">Ondertitel</label><input id="subtitle" name="subtitle" type="text" value="{{ book.subtitle }}" maxlength="120" placeholder="Verteld door {{ storyteller.name if storyteller else '' }}"></div>
+          <fieldset><legend>Omslag</legend>
+            <div class="cover-swatches">
+              {% for key, label in [("nacht", "Nacht"), ("schemer", "Schemer"), ("foto", "Met foto")] %}
+              <label class="swatch"><input type="radio" name="cover_style" value="{{ key }}"{% if book.cover_style == key %} checked{% endif %}><span class="face face-{{ key }}">{{ book.title }}</span><span class="label">{{ label }}</span></label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          {% if photos %}<div class="field"><label for="cover_photo_id">Foto voor de omslag</label><select id="cover_photo_id" name="cover_photo_id"><option value="">Geen</option>{% for ph, asset in photos %}<option value="{{ ph.id }}"{% if book.cover_photo_id == ph.id %} selected{% endif %}>{{ ph.caption or asset.original_filename or ("Foto van " ~ (ph.created_at|nl_date)) }}</option>{% endfor %}</select></div>{% endif %}
+          <div class="field"><label for="dedication">Opdracht <span class="hint">Voorin het boek. Niet verplicht.</span></label><textarea id="dedication" name="dedication" rows="3" maxlength="600" placeholder="Voor Sanne, Joost en alle kleinkinderen.">{{ book.dedication }}</textarea></div>
+          <button class="btn btn-quiet btn-small" type="submit">Opslaan</button>
+        </form>
+        {% else %}
+        <p class="serif" style="font-size:1.2rem;margin:0">{{ book.title }}</p>{% if book.subtitle %}<p class="muted">{{ book.subtitle }}</p>{% endif %}
+        {% endif %}
+      </div>
+      <div class="aside-block">
+        <h3>Wat erin komt</h3>
+        <p class="small">Elk verhaal begint op een nieuwe pagina, met de vraag, de tekst, de foto's en een QR-code met audiocode. Achterin staat een luisterregister. Verhalen die nog worden verwerkt, slaan we over.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

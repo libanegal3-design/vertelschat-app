@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Pincode · Vertelschat{% endblock %}
+{% block body_class %}listen-body{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="listen">
+  <a class="wordmark" href="#">vertelschat</a>
+  <div class="listen-main">
+    <p class="kicker">{{ project.title }}</p>
+    <h1>Vul de pincode in</h1>
+    <p>De familie heeft de verhalen in dit boek beveiligd met een pincode. Je vindt hem voor in het boek.</p>
+    {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="/v/{{ link.token }}/pin">
+      <div class="field"><label for="pin">Pincode</label><input id="pin" name="pin" type="tel" inputmode="numeric" autocomplete="off" maxlength="8" required></div>
+      <button class="btn btn-lamp" type="submit">Luisteren</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{
+  "name": "vertelschat-theme-tools",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Theme Check and an offline Liquid preview for the Vertelschat Shopify theme",
+  "scripts": {
+    "check": "node check.js ../../../storefront",
+    "preview": "node preview.js ../../../storefront ./preview"
+  },
+  "dependencies": {
+    "@shopify/theme-check-node": "^3.29.1",
+    "liquidjs": "^10.29.0"
+  }
+}

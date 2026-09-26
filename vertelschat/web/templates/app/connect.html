@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block main %}
+<div class="wrap page">
+  <a class="back" href="/p/{{ project.id }}/familie">Familie</a>
+  <h1>Verbind {{ storyteller.name.split(' ')[0] }} met WhatsApp</h1>
+  <p class="lede" style="max-width:62ch">De uitnodiging werkt tot hij gebruikt is. Stuurt iemand anders hem door? Dan vraagt Vertelschat eerst of het wel de juiste persoon is.</p>
+  <div style="margin-top:28px">{% include "app/_connect.html" %}</div>
+</div>
+{% endblock %}

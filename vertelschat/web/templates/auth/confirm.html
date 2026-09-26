@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Inloggen · Vertelschat{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="auth">
+  {% include "auth/_side.html" %}
+  <section class="auth-main"><div class="auth-box">
+    <h1>Welkom terug</h1>
+    <p>Je logt in als <strong>{{ email }}</strong>.</p>
+    <form method="post" action="/inloggen/{{ token }}">
+      <button class="btn btn-lamp" type="submit">Inloggen</button>
+    </form>
+    <p class="auth-foot">Ben jij dit niet? Sluit deze pagina dan gewoon.</p>
+  </div></section>
+</div>
+{% endblock %}

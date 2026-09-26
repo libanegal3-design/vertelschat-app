@@ -1,0 +1,6 @@
+<ol class="steps" aria-label="Stappen">
+  <li class="{% if step_index > -1 %}is-done{% else %}is-current{% endif %}"><span class="n">{% if step_index > -1 %}{{ ui.icon("check") }}{% else %}1{% endif %}</span><span class="label">Voor wie</span></li>
+  {% for key, label in steps %}
+  <li class="{% if loop.index0 < step_index %}is-done{% elif loop.index0 == step_index %}is-current{% endif %}"><span class="n">{% if loop.index0 < step_index %}{{ ui.icon("check") }}{% else %}{{ loop.index + 1 }}{% endif %}</span><span class="label">{{ label }}</span></li>
+  {% endfor %}
+</ol>

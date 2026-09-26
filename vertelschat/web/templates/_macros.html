@@ -1,0 +1,54 @@
+{% macro csrf() -%}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{%- endmacro %}
+
+{% macro icon(name, cls="") -%}
+{%- set paths = {
+ "play": '<path d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10.2-6.4a1 1 0 0 0 0-1.7L9.52 4.75A1 1 0 0 0 8 5.6z" fill="currentColor"/>',
+ "pause": '<rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/>',
+ "download": '<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+ "check": '<path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+ "flag": '<path d="M12 3.8 21 19H3L12 3.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.2M12 16.6v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+ "info": '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5.5M12 7.6v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+ "text": '<path d="M5 6.5h14M5 11h14M5 15.5h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+ "up": '<path d="m6 14 6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+ "down": '<path d="m6 10 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+ "x": '<path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+ "mic": '<rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+ "lock": '<rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>'
+} -%}
+<svg class="icon {{ cls }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">{{ paths[name]|safe }}</svg>
+{%- endmacro %}
+
+{% macro player(asset_id, duration=0, group="", bars=44, big=False, src=None) -%}
+<div class="player{% if big %} player-lg{% endif %}" data-player data-duration="{{ duration or 0 }}" data-bars="{{ bars }}"{% if group %} data-group="{{ group }}"{% endif %}>
+  <button type="button" class="play" data-play aria-label="Luister">{{ icon("play", "i-play") }}{{ icon("pause", "i-pause") }}</button>
+  <div class="track" data-track></div>
+  <span class="time" data-time>{{ (duration or 0)|duration }}</span>
+  <audio controls preload="none" src="{{ src or ('/m/' ~ asset_id) }}"></audio>
+</div>
+{%- endmacro %}
+
+{% macro miniplay(asset_id, duration=0, href="#") -%}
+<div class="player mini-play" data-player data-duration="{{ duration or 0 }}">
+  <button type="button" class="play" data-play aria-label="Luister">{{ icon("play", "i-play") }}{{ icon("pause", "i-pause") }}</button>
+  <audio preload="none" src="/m/{{ asset_id }}"></audio>
+</div>
+{%- endmacro %}
+
+{% macro story_status(s) -%}
+{%- if s.status == "processing" -%}<span class="pill pill-busy"><span class="dot"></span>Wordt verwerkt</span>
+{%- elif s.status == "needs_review" -%}<span class="pill pill-check">Even nakijken</span>
+{%- else -%}<span class="pill pill-ready">Klaar</span>{%- endif -%}
+{%- endmacro %}
+
+{% macro prompt_status(p) -%}
+{%- if p.status == "answered" -%}<span class="pill pill-ready">Beantwoord</span>
+{%- elif p.status == "sent" and p.read_at -%}<span class="pill">Gelezen</span>
+{%- elif p.status == "sent" and p.delivered_at -%}<span class="pill">Afgeleverd</span>
+{%- elif p.status == "sent" -%}<span class="pill">Verstuurd</span>
+{%- elif p.status == "scheduled" -%}<span class="pill pill-busy"><span class="dot"></span>Wordt verstuurd</span>
+{%- elif p.status == "failed" -%}<span class="pill pill-danger">Niet aangekomen</span>
+{%- elif p.status == "send_unknown" -%}<span class="pill pill-check">Onzeker</span>
+{%- else -%}<span class="pill">{{ p.status }}</span>{%- endif -%}
+{%- endmacro %}
+
+{% macro initials(name) -%}{{ (name or "?")[:1]|upper }}{%- endmacro %}
