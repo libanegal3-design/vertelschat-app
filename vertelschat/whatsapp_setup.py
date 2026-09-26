@@ -2,7 +2,7 @@
 
     python -m vertelschat.whatsapp_setup                      # check the configuration and show the status
     python -m vertelschat.whatsapp_setup --pin 123456         # register the phone number for the Cloud API
-    python -m vertelschat.whatsapp_setup --sjablonen          # submit the four message templates
+    python -m vertelschat.whatsapp_setup --sjablonen          # submit the message templates
 
 It also subscribes the WhatsApp Business Account to the app, so incoming messages reach the webhook. Every step is
 safe to repeat: Meta answers "already done" and the command carries on.
@@ -21,7 +21,6 @@ from .whatsapp import GRAPH_BASE
 # Example values Meta needs to review each template (the real values are filled in per message).
 TEMPLATE_EXAMPLES = {
     "vt_vraag_v1": ["Marijke", "Hoe zag het huis eruit waar je opgroeide? Neem me eens mee door de kamers."],
-    "vt_vraag_familie_v1": ["Marijke", "Emma", "Wat was je lievelingsliedje toen je zestien was?"],
     "vt_vraag_kort_v1": ["Marijke", "Wat was je allereerste baantje?"],
     "vt_afsluiting_v1": ["Marijke"],
 }
@@ -130,7 +129,7 @@ class Setup:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="WhatsApp Cloud API afronden voor Vertelschat")
     p.add_argument("--pin", help="De 6-cijferige pincode (tweestapsverificatie) om het nummer te registreren")
-    p.add_argument("--sjablonen", action="store_true", help="Dien de vier berichtsjablonen in bij Meta")
+    p.add_argument("--sjablonen", action="store_true", help="Dien de berichtsjablonen in bij Meta")
     args = p.parse_args(argv)
     st = Setup()
     if not st.check_config() or not st.number_status():

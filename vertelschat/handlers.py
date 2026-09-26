@@ -1228,12 +1228,11 @@ def send_prompt(session: Session, payload: dict) -> None:
                                         extra=bool(payload.get("extra")))
         wa_payload, via, template = text_message(rcpt, body), "session", ""
     else:
-        if asker:
-            template, params = "vt_vraag_familie_v1", [st.greeting_name, asker, p.text]
-        elif first_weeks:
-            template, params = "vt_vraag_v1", [st.greeting_name, p.text]
-        else:
-            template, params = "vt_vraag_kort_v1", [st.greeting_name, p.text]
+        # Family questions use the same utility templates, with the asker inside the question: Meta classified a
+        # separate family template as marketing (costlier, and marketing messages can be withheld).
+        question = f"{asker} vroeg zich af: {p.text}" if asker else p.text
+        template = "vt_vraag_v1" if first_weeks else "vt_vraag_kort_v1"
+        params = [st.greeting_name, question]
         wa_payload, via = template_message(rcpt, template, s.whatsapp_template_lang, params), "template"
         body = copy_nl.TEMPLATES[template]
         for i, value in enumerate(params, start=1):
