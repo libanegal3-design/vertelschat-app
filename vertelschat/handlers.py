@@ -1228,10 +1228,11 @@ def send_prompt(session: Session, payload: dict) -> None:
                                         extra=bool(payload.get("extra")))
         wa_payload, via, template = text_message(rcpt, body), "session", ""
     else:
-        # Family questions use the same utility templates, with the asker inside the question: Meta classified a
-        # separate family template as marketing (costlier, and marketing messages can be withheld).
+        # One neutral utility template for every scheduled question. Meta classified the warmer first-weeks and
+        # family variants as marketing (in NL about $0.16 per message, and marketing messages can be withheld), so
+        # family questions travel inside the question text; the warmer wording stays in the session messages.
         question = f"{asker} vroeg zich af: {p.text}" if asker else p.text
-        template = "vt_vraag_v1" if first_weeks else "vt_vraag_kort_v1"
+        template = "vt_vraag_kort_v1"
         params = [st.greeting_name, question]
         wa_payload, via = template_message(rcpt, template, s.whatsapp_template_lang, params), "template"
         body = copy_nl.TEMPLATES[template]

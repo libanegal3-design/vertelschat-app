@@ -20,7 +20,6 @@ from .whatsapp import GRAPH_BASE
 
 # Example values Meta needs to review each template (the real values are filled in per message).
 TEMPLATE_EXAMPLES = {
-    "vt_vraag_v1": ["Marijke", "Hoe zag het huis eruit waar je opgroeide? Neem me eens mee door de kamers."],
     "vt_vraag_kort_v1": ["Marijke", "Wat was je allereerste baantje?"],
     "vt_afsluiting_v1": ["Marijke"],
 }
@@ -124,6 +123,13 @@ class Setup:
             t = ours.get(name)
             self.out(f"  {name}: " + (f"{t.get('status')} ({t.get('category')}, {t.get('language')})" if t else
                                       "nog niet ingediend"))
+            if t and t.get("category") == "MARKETING":
+                self.out("    Meta ziet dit als marketing. Vraag in WhatsApp Manager een nieuwe beoordeling aan (zie "
+                         "WHATSAPP-KOPPELEN.md), of laat het mij weten.")
+        unused = sorted(t["name"] for t in d.get("data", []) if t.get("name", "").startswith("vt_")
+                        and t["name"] not in TEMPLATES)
+        if unused:
+            self.out("Niet meer gebruikt (mag je verwijderen in WhatsApp Manager): " + ", ".join(unused))
 
 
 def main(argv: list[str] | None = None) -> int:
