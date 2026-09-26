@@ -15,22 +15,23 @@ import sys
 import httpx
 
 from .config import get_settings
-from .copy_nl import TEMPLATES
+from .copy_nl import TEMPLATE_BUTTONS, TEMPLATES
 from .whatsapp import GRAPH_BASE
 
 # Example values Meta needs to review each template (the real values are filled in per message).
 TEMPLATE_EXAMPLES = {
-    "vt_vraag_kort_v1": ["Marijke", "Wat was je allereerste baantje?"],
+    "vt_vraag_klaar_v1": ["Marijke"],
     "vt_afsluiting_v1": ["Marijke"],
 }
 
 
 def template_payload(name: str) -> dict:
-    return {
-        "name": name, "language": get_settings().whatsapp_template_lang, "category": "UTILITY",
-        "parameter_format": "POSITIONAL",
-        "components": [{"type": "BODY", "text": TEMPLATES[name], "example": {"body_text": [TEMPLATE_EXAMPLES[name]]}}],
-    }
+    components = [{"type": "BODY", "text": TEMPLATES[name], "example": {"body_text": [TEMPLATE_EXAMPLES[name]]}}]
+    if name in TEMPLATE_BUTTONS:
+        components.append({"type": "BUTTONS",
+                           "buttons": [{"type": "QUICK_REPLY", "text": t} for t in TEMPLATE_BUTTONS[name]]})
+    return {"name": name, "language": get_settings().whatsapp_template_lang, "category": "UTILITY",
+            "parameter_format": "POSITIONAL", "components": components}
 
 
 class Setup:

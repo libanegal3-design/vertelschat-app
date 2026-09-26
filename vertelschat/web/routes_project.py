@@ -450,7 +450,8 @@ def prompts_page(request: Request, pid: str, cat: str = "", db: Session = Depend
     suggested = db.scalars(select(Prompt).where(Prompt.project_id == project.id, Prompt.status == "suggested")
                            .order_by(Prompt.created_at.desc())).all()
     history = db.scalars(select(Prompt).where(Prompt.project_id == project.id,
-                                              Prompt.status.in_(["sent", "answered", "failed", "send_unknown"]))
+                                              Prompt.status.in_(["announced", "sent", "answered", "failed",
+                                                                 "send_unknown"]))
                          .order_by(Prompt.sent_at.desc().nulls_first(), Prompt.created_at.desc())).all()
     lib = browse(db, project)
     current = next((c for c in lib if c[0] == cat), lib[0] if lib else None)

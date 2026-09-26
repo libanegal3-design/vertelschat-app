@@ -109,7 +109,8 @@ def render_storyteller_booklet(project: Project) -> bytes:
     c.drawCentredString(W / 2, H * 0.38, f"Voor {st.greeting_name}")
     c.showPage()
     page("Zo werkt het",
-         "Af en toe krijg je in WhatsApp een vraag over vroeger.<br/><br/>Je antwoordt met een <b>spraakbericht</b>: "
+         "Af en toe krijg je in WhatsApp een vraag over vroeger. Soms eerst een berichtje met de knop "
+         "\u2018Laat de vraag zien\u2019: tik erop.<br/><br/>Je antwoordt met een <b>spraakbericht</b>: "
          "houd het microfoontje ingedrukt en vertel maar. Lang of kort, alles is goed.<br/><br/>Geen app, geen "
          "wachtwoord. Wanneer het jou uitkomt.")
     page("Handige woorden",

@@ -257,6 +257,11 @@ def _dispatch(session: Session, msg: WhatsAppMessage, ident: WhatsAppIdentity, m
         kw = keyword_of(text)
         if kw:
             return _handle_keyword(session, msg, ident, tellers, kw)
+        ann = announced_prompt(session, tellers)
+        if ann is not None and len(text.split()) < LONG_TEXT_WORDS:  # "ja", "wat is de vraag?", "hallo"
+            msg.project_id = ann.project_id
+            request_delivery(session, ann, "reply")
+            return "processed"
         return _handle_text(session, msg, ident, tellers, text)
     if mtype == "audio":
         return _handle_media_part(session, msg, ident, tellers, m, "audio")
@@ -311,6 +316,19 @@ def _handle_join(session: Session, msg: WhatsAppMessage, ident: WhatsAppIdentity
 
 def _handle_button(session: Session, msg: WhatsAppMessage, ident: WhatsAppIdentity, button_id: str) -> str:
     parts = button_id.split(":")
+    if parts[0] == "showq" and len(parts) == 2:
+        p = session.get(Prompt, parts[1])
+        project = session.get(Project, p.project_id) if p else None
+        st = project.storyteller if project else None
+        if p is None or st is None or st.identity_id != ident.id:
+            return "ignored"
+        msg.project_id = project.id
+        if p.status in ("announced", "queued", "scheduled"):
+            request_delivery(session, p, "button")
+        elif p.status in ("sent", "answered"):  # tapped again later: show the question once more
+            reply_text(session, ident, question_body(session, project, st, p), key=f"showagain:{msg.id}",
+                       project_id=project.id)
+        return "processed"
     if parts[0] == "consent" and len(parts) == 3:
         st = session.get(Storyteller, parts[2])
         if st is None or st.identity_id != ident.id:
@@ -501,6 +519,10 @@ def _handle_keyword(session: Session, msg: WhatsAppMessage, ident: WhatsAppIdent
         sched = session.get(PromptSchedule, project.id)
         if sched:
             sched.paused_until = None
+        ann = announced_prompt(session, [st])
+        if ann is not None:
+            request_delivery(session, ann, "vraag")
+            return "processed"
         p = next_prompt(session, project)
         if p is None:
             reply_text(session, ident, copy_nl.MORE_NONE, key=f"kw:{msg.id}")
@@ -1191,7 +1213,7 @@ PERMANENT_SEND_CODES = {"131026", "131021", "131051", "132000", "132001", "13200
 
 def _send_prompt_dead(session: Session, payload: dict, error: str) -> None:
     p = session.get(Prompt, payload["prompt_id"])
-    if p is None or p.status in ("sent", "answered"):
+    if p is None or p.status in ("sent", "answered", "announced"):
         return
     p.status = "failed"
     p.failure_reason = error[:300]
@@ -1201,10 +1223,63 @@ def _send_prompt_dead(session: Session, payload: dict, error: str) -> None:
                       url=f"/p/{project.id}/vragen")
 
 
+ANNOUNCE_TEMPLATE = "vt_vraag_klaar_v1"
+
+
+def question_body(session: Session, project: Project, st: Storyteller, p: Prompt, extra: bool = False) -> str:
+    asker = ""
+    if p.source in ("family", "custom") and p.suggested_by_id:
+        user = session.get(User, p.suggested_by_id)
+        asker = user.first_name if user else ""
+    answered = session.scalar(select(func.count(Prompt.id)).where(Prompt.project_id == project.id,
+                                                                  Prompt.status == "answered")) or 0
+    return copy_nl.question_session(project.locale, st.greeting_name, p.text, asker=asker, first_weeks=answered < 3,
+                                    extra=extra)
+
+
+def announced_prompt(session: Session, tellers: list[Storyteller]) -> Prompt | None:
+    ids = [t.project_id for t in tellers]
+    return session.scalar(select(Prompt).where(Prompt.project_id.in_(ids), Prompt.status == "announced")
+                          .order_by(Prompt.sent_at.desc())) if ids else None
+
+
+def request_delivery(session: Session, p: Prompt, reason: str) -> None:
+    enqueue(session, "deliver_prompt", {"prompt_id": p.id, "reason": reason}, dedupe_key=f"deliver_prompt:{p.id}")
+
+
+@job("deliver_prompt", max_attempts=8)
+def deliver_prompt(session: Session, payload: dict) -> None:
+    """The storyteller tapped 'Laat de vraag zien' (or replied): the window is open, so the question goes out as a
+    normal message."""
+    p = session.get(Prompt, payload["prompt_id"])
+    if p is None or p.status not in ("announced", "queued", "scheduled"):
+        return
+    project = session.get(Project, p.project_id)
+    st = project.storyteller
+    if st is None or not st.identity_id:
+        return
+    ident = session.get(WhatsAppIdentity, st.identity_id)
+    body = question_body(session, project, st, p)
+    try:
+        outcome, row = send_whatsapp(session, ident, text_message(recipient_for(ident), body), key=f"prompt:{p.id}:show",
+                                     project_id=project.id, prompt_id=p.id, msg_type="text", body_text=body)
+    except WhatsAppError as exc:
+        raise RetryLater(str(exc)) from exc
+    if outcome == "unknown":
+        p.status = "send_unknown"
+        p.failure_reason = "We weten niet zeker of deze vraag is aangekomen (verbinding viel weg tijdens verzenden)."
+        return
+    now = utcnow()
+    p.status, p.sent_at, p.sent_via, p.wa_message_id, p.failure_reason = "sent", now, "session", row.wamid, ""
+    sched = session.get(PromptSchedule, project.id)
+    if sched:
+        sched.last_sent_at = now
+
+
 @job("send_prompt", max_attempts=12, on_dead=_send_prompt_dead)
 def send_prompt(session: Session, payload: dict) -> None:
     p = session.get(Prompt, payload["prompt_id"])
-    if p is None or p.status in ("sent", "answered", "send_unknown", "rejected", "skipped", "suggested"):
+    if p is None or p.status in ("sent", "answered", "announced", "send_unknown", "rejected", "skipped", "suggested"):
         return
     project = session.get(Project, p.project_id)
     st = project.storyteller
@@ -1215,33 +1290,26 @@ def send_prompt(session: Session, payload: dict) -> None:
     ident = session.get(WhatsAppIdentity, st.identity_id)
     s = get_settings()
     rcpt = recipient_for(ident)
-    asker = ""
-    if p.source in ("family", "custom") and p.suggested_by_id:
-        user = session.get(User, p.suggested_by_id)
-        asker = user.first_name if user else ""
-    answered = session.scalar(select(func.count(Prompt.id)).where(Prompt.project_id == project.id,
-                                                                  Prompt.status == "answered")) or 0
-    first_weeks = answered < 3
     use_session = window_open(ident, now) and p.failure_reason != "window_closed"
     if use_session:
-        body = copy_nl.question_session(project.locale, st.greeting_name, p.text, asker=asker, first_weeks=first_weeks,
-                                        extra=bool(payload.get("extra")))
+        body = question_body(session, project, st, p, extra=bool(payload.get("extra")))
         wa_payload, via, template = text_message(rcpt, body), "session", ""
     else:
-        # One neutral utility template for every scheduled question. Meta classified the warmer first-weeks and
-        # family variants as marketing (in NL about $0.16 per message, and marketing messages can be withheld), so
-        # family questions travel inside the question text; the warmer wording stays in the session messages.
-        question = f"{asker} vroeg zich af: {p.text}" if asker else p.text
-        template = "vt_vraag_kort_v1"
-        params = [st.greeting_name, question]
-        wa_payload, via = template_message(rcpt, template, s.whatsapp_template_lang, params), "template"
+        # Window closed: announce with a utility template and a button. The question itself follows as a normal
+        # message when the storyteller taps it (see deliver_prompt). Templates that ask the question directly were
+        # classified as marketing by Meta: about $0.16 per message in NL, and they can be withheld.
+        template = ANNOUNCE_TEMPLATE
+        params = [st.greeting_name]
+        wa_payload = template_message(rcpt, template, s.whatsapp_template_lang, params,
+                                      quick_reply_payloads=[f"showq:{p.id}"])
+        via = "announce"
         body = copy_nl.TEMPLATES[template]
         for i, value in enumerate(params, start=1):
             body = body.replace("{{%d}}" % i, value)
     key = f"prompt:{p.id}{payload.get('attempt_key', '')}"
     try:
         outcome, row = send_whatsapp(session, ident, wa_payload, key=key, project_id=project.id, prompt_id=p.id,
-                                     msg_type="template" if via == "template" else "text", body_text=body)
+                                     msg_type="template" if via == "announce" else "text", body_text=body)
     except WhatsAppError as exc:
         code = str(exc.code or "")
         if code == "131047" and use_session:
@@ -1267,10 +1335,10 @@ def send_prompt(session: Session, payload: dict) -> None:
         return
     first_ever = not session.scalar(select(Prompt.id).where(Prompt.project_id == project.id,
                                                             Prompt.sent_at.is_not(None), Prompt.id != p.id))
-    p.status = "sent"
+    p.status = "announced" if via == "announce" else "sent"
     p.sent_at = now
     p.sent_via = via
-    p.template_name = template if via == "template" else ""
+    p.template_name = template if via == "announce" else ""
     p.wa_message_id = row.wamid
     p.failure_reason = ""
     sched = session.get(PromptSchedule, project.id)
@@ -1298,7 +1366,7 @@ def process_status(session: Session, payload: dict) -> None:
         code = str(errs[0].get("code", ""))
         title = errs[0].get("title") or errs[0].get("message") or "onbekende fout"
         row.status, row.error_code, row.error_text = "failed", code, title[:500]
-        if p and p.status == "sent":
+        if p and p.status in ("sent", "announced"):
             project = session.get(Project, p.project_id)
             if code == "131049":
                 p.status = "scheduled"

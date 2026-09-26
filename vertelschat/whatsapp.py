@@ -92,11 +92,14 @@ def buttons_message(r: Recipient, body: str, buttons: list[tuple[str, str]], foo
     return {**_base(r), "type": "interactive", "interactive": interactive}
 
 
-def template_message(r: Recipient, name: str, lang: str, params: list[str]) -> dict:
+def template_message(r: Recipient, name: str, lang: str, params: list[str],
+                     quick_reply_payloads: list[str] | None = None) -> dict:
+    components = [{"type": "body", "parameters": [{"type": "text", "text": sanitize_param(p)} for p in params]}]
+    for i, payload in enumerate(quick_reply_payloads or []):
+        components.append({"type": "button", "sub_type": "quick_reply", "index": str(i),
+                           "parameters": [{"type": "payload", "payload": payload}]})
     return {**_base(r), "type": "template",
-            "template": {"name": name, "language": {"code": lang},
-                         "components": [{"type": "body",
-                                         "parameters": [{"type": "text", "text": sanitize_param(p)} for p in params]}]}}
+            "template": {"name": name, "language": {"code": lang}, "components": components}}
 
 
 def reaction_message(r: Recipient, wamid: str, emoji: str = "\u2764\ufe0f") -> dict:

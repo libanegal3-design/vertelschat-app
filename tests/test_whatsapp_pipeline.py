@@ -472,3 +472,74 @@ def test_delivery_statuses(h):
     with SessionLocal() as s:
         p = s.scalar(select(Prompt).where(Prompt.wa_message_id == wamid))
         assert p.delivered_at and p.read_at
+
+
+def _announce_next_question(h, proj):
+    """Answer the first question, close the 24-hour window and let the scheduler send the next one."""
+    from vertelschat import scheduler
+    h.post([h.voice(context=h.last_prompt_wamid(proj["pid"]))])
+    h.run()
+    with SessionLocal() as s:
+        s.scalar(select(WhatsAppIdentity)).last_inbound_at = utcnow() - timedelta(days=3)
+        s.get(PromptSchedule, proj["pid"]).next_send_at = utcnow() - timedelta(minutes=1)
+        s.commit()
+    assert scheduler.tick()["scheduled"] == 1
+    h.run()
+    with SessionLocal() as s:
+        p = s.scalar(select(Prompt).where(Prompt.project_id == proj["pid"], Prompt.status == "announced"))
+        return p.id, p.text
+
+
+def test_question_outside_window_is_announced_and_shown_on_tap(h):
+    proj = h.project()
+    h.connect(proj)
+    pid, question = _announce_next_question(h, proj)
+    tpl = h.sent()[-1]
+    assert tpl["type"] == "template" and tpl["template"]["name"] == "vt_vraag_klaar_v1"
+    button = tpl["template"]["components"][1]
+    assert button["sub_type"] == "quick_reply" and button["parameters"][0]["payload"] == f"showq:{pid}"
+    assert not any(question in t for t in h.sent_texts())  # the question itself is not in a template
+    h.post([h.msg(type="button", button={"payload": f"showq:{pid}", "text": "Laat de vraag zien"})])
+    h.run()
+    assert question in h.sent_texts()[-1]
+    with SessionLocal() as s:
+        p = s.get(Prompt, pid)
+        assert p.status == "sent" and p.sent_via == "session" and p.wa_message_id
+    # a voice note answering that message is linked to the question
+    h.post([h.voice("03-zondag.ogg", context=h.last_prompt_wamid(proj["pid"]))])
+    h.run()
+    with SessionLocal() as s:
+        assert s.get(Prompt, pid).status == "answered"
+
+
+def test_a_short_reply_or_vraag_also_opens_the_announced_question(h):
+    proj = h.project()
+    h.connect(proj)
+    pid, question = _announce_next_question(h, proj)
+    h.post([h.text("Ja hoor")])
+    h.run()
+    assert question in h.sent_texts()[-1]
+    with SessionLocal() as s:
+        assert s.get(Prompt, pid).status == "sent"
+        assert s.scalar(select(func.count(Story.id))) == 1  # "Ja hoor" did not become a story
+
+
+def test_unopened_announcement_goes_back_to_the_queue(h):
+    from vertelschat import scheduler
+    proj = h.project()
+    h.connect(proj)
+    pid, _ = _announce_next_question(h, proj)
+    with SessionLocal() as s:  # still waiting: no second announcement
+        s.get(PromptSchedule, proj["pid"]).next_send_at = utcnow() - timedelta(minutes=1)
+        s.commit()
+    assert scheduler.tick()["postponed"] == 1
+    with SessionLocal() as s:  # after the waiting period the question is offered again instead of lost
+        p = s.get(Prompt, pid)
+        p.sent_at = utcnow() - timedelta(days=15)
+        s.get(PromptSchedule, proj["pid"]).next_send_at = utcnow() - timedelta(minutes=1)
+        s.commit()
+    assert scheduler.tick()["scheduled"] == 1
+    h.run()
+    with SessionLocal() as s:
+        announced = s.scalars(select(Prompt).where(Prompt.status == "announced")).all()
+        assert len(announced) == 1 and announced[0].id == pid

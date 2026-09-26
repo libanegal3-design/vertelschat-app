@@ -29,7 +29,9 @@ BTN_NOT_ME = "Dit ben ik niet"
 
 def consent_thanks(name: str) -> str:
     return (f"Dankjewel, {name}. Hier komt je eerste vraag. Neem gerust de tijd: houd het microfoontje "
-            "ingedrukt en vertel maar. Meerdere berichtjes achter elkaar mag ook.")
+            "ingedrukt en vertel maar. Meerdere berichtjes achter elkaar mag ook.\n\n"
+            "Een volgende keer krijg je soms eerst een berichtje met de knop \u2018Laat de vraag zien\u2019. "
+            "Tik erop, dan verschijnt de vraag.")
 
 
 NOT_ME = ("Geen probleem, dan heb ik dit nummer weer losgekoppeld. De uitnodiging is bedoeld voor degene die de "
@@ -51,8 +53,13 @@ def question_session(locale: str, name: str, question: str, asker: str = "", fir
 
 
 # Templates as submitted to Meta (category: utility). Keep in sync with whatsapp/templates.json.
+# Scheduled questions outside the 24-hour window are announced with a utility template and a button; the question
+# itself follows as a normal message once the storyteller taps it (Meta classifies templates that ask a question as
+# marketing, which costs about $0.16 per message in the Netherlands and can be withheld).
+TEMPLATE_BUTTONS = {"vt_vraag_klaar_v1": ["Laat de vraag zien"]}
+
 TEMPLATES = {
-    "vt_vraag_kort_v1": "Hallo {{1}}, een nieuwe vraag voor je:\n\n*{{2}}*\n\nAntwoorden kan met een spraakbericht.",
+    "vt_vraag_klaar_v1": "Hallo {{1}}, er staat een nieuwe vraag voor je klaar bij Vertelschat. Tik op de knop hieronder om hem te lezen.",
     "vt_afsluiting_v1": "Hallo {{1}}, dit was de laatste vraag van dit verteljaar. Dankjewel voor al je verhalen. Ze blijven bewaard voor je familie, ook na vandaag.",
 }
 
@@ -111,7 +118,8 @@ MORE_NONE = "Er staat op dit moment geen nieuwe vraag klaar. De familie kan nieu
 
 def help_text(support: str) -> str:
     return ("Zo werkt Vertelschat:\n\n"
-            "\u2022 Je krijgt regelmatig een vraag.\n"
+            "\u2022 Je krijgt regelmatig een vraag. Soms eerst een berichtje met een knop: tik op "
+            "\u2018Laat de vraag zien\u2019 en de vraag verschijnt.\n"
             "\u2022 Antwoorden doe je met een spraakbericht: houd het microfoontje ingedrukt. Typen mag ook.\n"
             "\u2022 Iets anders vertellen dan de vraag? Dat mag altijd.\n\n"
             "Handige woorden:\nVRAAG: stuur me een nieuwe vraag\nPAUZE: vier weken geen vragen\nSTOP: afmelden\n\n"

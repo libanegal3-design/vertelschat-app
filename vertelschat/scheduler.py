@@ -5,12 +5,12 @@ import logging
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from .db import session_scope, utcnow
 from .jobs import enqueue, job, recover_stale
-from .models import (LoginToken, MediaAsset, Project, Prompt, PromptSchedule, Recording, WebSession)
+from .models import (LoginToken, MediaAsset, Project, Prompt, PromptSchedule, Recording, WebSession, WhatsAppMessage)
 from .notify import notify, notify_organizers
 
 log = logging.getLogger("vertelschat.scheduler")
@@ -54,11 +54,15 @@ def _due_schedules(s: Session, now: datetime, counts: dict) -> None:
             continue
         last = s.scalar(select(Prompt).where(Prompt.project_id == project.id, Prompt.sent_at.is_not(None))
                         .order_by(Prompt.sent_at.desc()))
-        if (sched.wait_for_answer and last is not None and last.status in ("sent", "send_unknown")
+        if (sched.wait_for_answer and last is not None and last.status in ("sent", "send_unknown", "announced")
                 and last.answered_at is None and now - last.sent_at < timedelta(days=sched.max_wait_days)):
             sched.next_send_at = now + timedelta(days=1)  # never stack unanswered questions
             counts["postponed"] += 1
             continue
+        # an announcement nobody opened goes back to the queue, so the question is offered again rather than lost
+        s.query(Prompt).filter(Prompt.project_id == project.id, Prompt.status == "announced").update(
+            {Prompt.status: "queued", Prompt.sent_at: None, Prompt.sent_via: "", Prompt.template_name: "",
+             Prompt.wa_message_id: None}, synchronize_session=False)
         if s.scalar(select(Prompt.id).where(Prompt.project_id == project.id, Prompt.status == "scheduled")):
             sched.next_send_at = now + timedelta(hours=1)
             continue
@@ -69,7 +73,11 @@ def _due_schedules(s: Session, now: datetime, counts: dict) -> None:
                               "Voeg zelf een vraag toe of kies er een uit de bibliotheek.", url=f"/p/{project.id}/vragen")
             continue
         p.status = "scheduled"
-        enqueue(s, "send_prompt", {"prompt_id": p.id}, dedupe_key=f"send_prompt:{p.id}")
+        # a question offered before (an announcement nobody opened) needs fresh job and message keys
+        offered = s.scalar(select(func.count(WhatsAppMessage.id)).where(WhatsAppMessage.prompt_id == p.id,
+                                                                        WhatsAppMessage.direction == "out")) or 0
+        suffix = f":r{offered}" if offered else ""
+        enqueue(s, "send_prompt", {"prompt_id": p.id, "attempt_key": suffix}, dedupe_key=f"send_prompt:{p.id}{suffix}")
         counts["scheduled"] += 1
 
 

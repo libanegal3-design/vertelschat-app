@@ -45,6 +45,7 @@
 {%- elif p.status == "sent" and p.read_at -%}<span class="pill">Gelezen</span>
 {%- elif p.status == "sent" and p.delivered_at -%}<span class="pill">Afgeleverd</span>
 {%- elif p.status == "sent" -%}<span class="pill">Verstuurd</span>
+{%- elif p.status == "announced" -%}<span class="pill">Klaargezet, nog niet geopend</span>
 {%- elif p.status == "scheduled" -%}<span class="pill pill-busy"><span class="dot"></span>Wordt verstuurd</span>
 {%- elif p.status == "failed" -%}<span class="pill pill-danger">Niet aangekomen</span>
 {%- elif p.status == "send_unknown" -%}<span class="pill pill-check">Onzeker</span>
